@@ -5,7 +5,6 @@ import json
 import sys
 import time
 from decimal import Decimal
-
 COLORS_D = ["#B9D7FF", "#86B6F2", "#4389E3", "#1666CB", "#0645B4", "#002B84"]
 COLORS_R = ["#F2B3BE", "#E27F90", "#CC2F4A", "#D40000", "#AA0000", "#800000"]
 THRESH_MARGIN = [40, 50, 60, 70, 80, 90, 100]
@@ -64,6 +63,20 @@ class ElectoralMap:
                  data: pd.DataFrame,
                  geojson: str,
                  projection: str) -> None:
+        """Initializes the instance of ElectoralMap class.
+
+        Args:
+            data (pd.DataFrame): the data to be plotted.
+            Consists of the following columns:
+                county (str): optional.
+                result (float, from -100 to 100): required.
+                id (str, five digits): required.
+            geojson (str): the path to the file with GEOJSON data.
+            projection (str): the projection of the map.
+            'transverse mercator' advised.
+        """
+            
+                
         self.data = data
         with open(geojson) as file:
             self.geojson = json.load(file)
@@ -71,17 +84,23 @@ class ElectoralMap:
         self.add_ids()
         self.add_colors()
         self.add_colorscale()
+        
 
     def add_ids(self):
+        """Adds plotly-readable ids to the features of the GEOJSON."""
         features = self.geojson["features"]
         for feature in features:
             feature["id"] = feature["properties"]["GEOID"]
         self.geojson["features"] = features
+        
 
     def add_colors(self) -> None:
+        """Adds colors to the data according to the result."""
         self.data["color"] = self.data["result"].apply(lambda x: get_color(x))
+        
 
     def add_colorscale(self) -> None:
+        """Adds a colorscale used to plot the data."""
         m, c = line_between_points((min(self.data["result"]), 0),
                                    (max(self.data["result"]), 1))
         values = []
@@ -98,8 +117,10 @@ class ElectoralMap:
         values = sorted(values, key=lambda x: x[0])
         values[0][0] = 0
         self.colorscale = values
+        
 
     def draw_map(self) -> go.Figure():
+        """Draws a choropleth map of the data based on the GEOJSON."""
         fig = go.Figure(data=go.Choropleth(
             geojson=self.geojson,
             locations=self.data["id"],
@@ -110,18 +131,43 @@ class ElectoralMap:
                         visible=False,
                         projection_type=self.projection)
         fig.update_traces(marker_line_color=WHITE,
-                          marker_line_width=1)
+                          marker_line_width=0.5)
         fig.layout.paper_bgcolor = WHITE
         fig.layout.plot_bgcolor = WHITE
         return fig
 
 
+def edit_viewbox(path: str,
+                 new_viewbox: str) -> None:
+    with open(path) as file:
+        data = file.read()
+        viewbox = [i for i in data.split('"')[1::2]
+                   if i.count(" ") == 3][0]
+        data = data.replace(viewbox, new_viewbox, 1)
+    with open(path, "w") as file:
+        file.write(data)
+
+
+def draw_electoral_map(data: pd.DataFrame,
+                       boundaries: str,
+                       name: str) -> None:
+    """Draws and saves a choropleth map using the ElectoralMap class.
+
+    Args:
+        data (pd.DataFrame): the data to be plotted.
+        Specifics described in the ElectoralMap class.
+        name (str): the name of the map.
+    """
+    my_map = ElectoralMap(data, boundaries, "transverse mercator")
+    my_map.draw_map().write_image(name)
+    edit_viewbox(name, "130 130 440 240")
+
+
 def main() -> None:
     data = pd.read_excel("data-montana-pres.xlsx", header=0,
                          index_col=0, dtype={"id": str})
-    projection = "transverse mercator"
-    my_map = ElectoralMap(data, "counties.geojson", projection)
-    my_map.draw_map().write_image(f"montana-{projection}.svg")
+    draw_electoral_map(data, "counties.geojson",
+                       "montana-presidential.svg")
 
 
 if __name__ == "__main__":
