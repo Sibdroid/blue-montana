@@ -281,10 +281,6 @@ def main() -> None:
                              "130 130 440 240")
 
 
-def main() -> None:
-    ret = ResultRectangle(COLORS_D_PRES, "test.svg", 500, 200)
-
-
 if __name__ == "__main__":
     main()
 
