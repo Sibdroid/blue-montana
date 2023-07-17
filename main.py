@@ -214,59 +214,6 @@ class ChoroplethMap:
         edit_viewbox(self.name, self.boundaries)
 
 
-class ResultRectangle:
-
-
-    def __init__(self,
-                 palette: list[str],
-                 name: str,
-                 width: int,
-                 height: int) -> None:
-        self.palette = palette
-        self.name = name
-        self.width = width
-        self.height = height
-        self.create_figure()
-        self.fill_rectangles()
-        self.save()
-        
-
-    def create_figure(self) -> None:
-        self.figure = go.Figure()
-        self.figure.update_layout(template='simple_white',
-                                  xaxis_range=[0, self.width],
-                                  yaxis_range=[0, self.height],
-                                  margin=dict(l=0, r=0, t=0, b=0),
-                                  showlegend=False)
-        self.figure.update_xaxes(visible=False, showticklabels=False)
-        self.figure.update_yaxes(visible=False, showticklabels=False)
-
-
-    def add_rectangle(self,
-                      x_coords: list[float],
-                      y_coords: list[float],
-                      color: str) -> None:
-        self.figure.add_trace(go.Scatter(x=x_coords, y=y_coords, fill="toself",
-                                         fillcolor=color,
-                                         opacity=1, mode="none"))
-
-
-    def fill_rectangles(self) -> None:
-        main_x_coords = [10, 10, 490, 490, 10]
-        main_y_coords = [10, 130, 130, 10, 10]
-        self.add_rectangle(main_x_coords, main_y_coords, self.palette[-1])
-        minor_x_coords = [10, 10, 80, 80, 10]
-        minor_y_coords = [140, 190, 190, 140, 140]
-        for color in self.palette:
-            self.add_rectangle(minor_x_coords, minor_y_coords, color)
-            minor_x_coords = [i+82 for i in minor_x_coords]
-
-
-    def save(self) -> None:
-        self.figure.write_image(self.name, width=self.width,
-                                height=self.height)
-                                
-
 
 def main() -> None:
     pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
@@ -278,7 +225,7 @@ def main() -> None:
                              "transverse mercator",
                              COLORS_I_DOWN, COLORS_R_DOWN,
                              "montana-senate.svg",
-                             "130 130 440 240")
+                             "130 130 440 240")    
 
 
 if __name__ == "__main__":
