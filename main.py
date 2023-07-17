@@ -2,34 +2,21 @@ import typing as t
 import plotly.graph_objects as go
 import pandas as pd
 import json
-import sys
-import time
+import os
 from decimal import Decimal
-COLORS_D = ["#B9D7FF", "#86B6F2", "#4389E3", "#1666CB", "#0645B4", "#002B84"]
-COLORS_R = ["#F2B3BE", "#E27F90", "#CC2F4A", "#D40000", "#AA0000", "#800000"]
+COLORS_D_PRES = ["#B9D7FF", "#86B6F2", "#4389E3",
+                 "#1666CB", "#0645B4", "#002B84"]
+COLORS_R_PRES = ["#F2B3BE", "#E27F90", "#CC2F4A",
+                 "#D40000", "#AA0000", "#800000"]
+COLORS_D_DOWN = ["#A5B0FF", "#7996E2", "#6674DE",
+                 "#584CDE", "#3933E5", "#0D0596"]
+COLORS_I_DOWN = ["#D9D9D9", "#BDBDBD", "#969696",
+                 "#737373", "#555555", "#555555"]
+COLORS_R_DOWN = ["#FFB2B2", "#E27F7F", "#D75D5D",
+                 "#D72F30", "#C21B18", "#A80000"]
 THRESH_MARGIN = [40, 50, 60, 70, 80, 90, 100]
 POINT = t.Tuple[float, float]
 WHITE = "#FFFFFF"
-
-
-def get_color(value: float) -> str:
-    """Transforms the value into the corresponding color.
-
-    Args:
-        value (float): the value to be transformed.
-
-    Returns:
-        The color from 'colors' argument, correlating to the value.
-
-    Examples:
-    """
-    if value > 0:
-        colors = COLORS_D
-    else:
-        colors = COLORS_R
-    for i, (left, right) in enumerate(zip(THRESH_MARGIN, THRESH_MARGIN[1:])):
-        if left < abs(value) <= right:
-            return colors[i]
 
 
 def line_between_points(point1: POINT,
@@ -48,8 +35,8 @@ def line_between_points(point1: POINT,
         >>> (Decimal('3'), Decimal('-3'))
 
         line_between_points((3.5, 2.5), (-5.5, 7.5))
-        >>> (Decimal('-0.5555555555555555555555555556'),
-             Decimal('4.444444444444444444444444444'))
+        >>> (Decimal('-0.5...56'),
+             Decimal('4.4...'))
 
     """
     m = Decimal(point2[1] - point1[1]) / Decimal(point2[0] - point1[0])
@@ -57,33 +44,98 @@ def line_between_points(point1: POINT,
     return m, c
 
 
-class ElectoralMap:
+def edit_viewbox(path: str,
+                 new_viewbox: str) -> None:
+    """Edits the viewbox of an .svg file.
+
+    Args:
+        path (str): the path to the .svg file.
+        new_viewbox (str): the viewbox to replace the old one.
+
+    Raises:
+        A ValueError exception in case the file is not .svg. 
+    """
+    name, extension = os.path.splitext(path)
+    if extension != ".svg":
+        raise ValueError(f"The file has to be an .svg, not a .{extension}")
+    with open(path) as file:
+        data = file.read()
+        viewbox = [i for i in data.split('"')[1::2]
+                   if i.count(" ") == 3][0]
+        data = data.replace(viewbox, new_viewbox, 1)
+    with open(path, "w") as file:
+        file.write(data)
+
+
+def read_data(path: str,
+              data_dtype: dict[str, type]) -> pd.DataFrame:
+    """Reads the data from an .xlsx or a .csv file.
+
+    Args:
+        path (str): the path to the file.
+        data_dtype (dict[str, type]): the dtype for the data.
+
+    Returns:
+        A pd.DataFrame.
+    """
+    name, extension = os.path.splitext(path)
+    if extension == ".xlsx":
+        df = pd.read_excel(path, header=0,
+                           index_col=0, dtype=data_dtype)
+    elif extension == ".svg":
+        df = pd.read_csv(path, header=0,
+                         index_col=0, dtype=data_dtype)
+    else:
+        error = f"The file has to be an .xlsx or a .csv, not a .{extension}"
+        raise ValueError(error)
+    return df
+
+
+class ChoroplethMap:
+
 
     def __init__(self,
-                 data: pd.DataFrame,
+                 data: str,
                  geojson: str,
-                 projection: str) -> None:
-        """Initializes the instance of ElectoralMap class.
+                 projection: str,
+                 colors_up: list[str],
+                 colors_down: list[str],
+                 name: str,
+                 boundaries: str,
+                 draw_instantly: bool=True) -> None:
+        """Initializes the instance of ChoroplethMap class.
 
         Args:
-            data (pd.DataFrame): the data to be plotted.
-            Consists of the following columns:
+            data (str): the path to the data.
+            Data consists of the following columns:
                 county (str): optional.
                 result (float, from -100 to 100): required.
-                id (str, five digits): required.
+                id (str, five digits): required.     
             geojson (str): the path to the file with GEOJSON data.
             projection (str): the projection of the map.
             'transverse mercator' advised.
-        """
+            colors_up (list[str]): the colors used for positive values.
+            colors_down (list[str]): the colors used for negative values.
+            name (str): the name of the image. '<name>.svg' strongly advised.
+            boundaries (str): the boundaries of the image. Should consist of
+            four integers divided by spaces: for example, '130 130 440 240'.
+            draw_instantly (bool): whether to draw the map when initialized.
+            Defaults to True."""
             
                 
-        self.data = data
+        self.data = read_data(data, {"id": str})
         with open(geojson) as file:
             self.geojson = json.load(file)
         self.projection = projection
+        self.colors_up = colors_up
+        self.colors_down = colors_down
+        self.name = name
+        self.boundaries = boundaries
         self.add_ids()
         self.add_colors()
         self.add_colorscale()
+        if draw_instantly:
+            self.draw_standard_map()
         
 
     def add_ids(self):
@@ -92,11 +144,30 @@ class ElectoralMap:
         for feature in features:
             feature["id"] = feature["properties"]["GEOID"]
         self.geojson["features"] = features
+
+
+    def get_color(self,
+                  value: float) -> str:
+        """Transforms the value into the corresponding color.
+
+        Args:
+            value (float): the value to be transformed.
+
+        Returns:
+            The color from self.colors_up or self.colors_down."""
+        if value > 0:
+            colors = self.colors_up
+        else:
+            colors = self.colors_down
+        for i, (left, right) in enumerate(zip(THRESH_MARGIN, THRESH_MARGIN[1:])):
+            if left < abs(value) <= right:
+                return colors[i]        
         
 
     def add_colors(self) -> None:
         """Adds colors to the data according to the result."""
-        self.data["color"] = self.data["result"].apply(lambda x: get_color(x))
+        color = self.data["result"].apply(lambda x: self.get_color(x))
+        self.data["color"] = color
         
 
     def add_colorscale(self) -> None:
@@ -137,37 +208,24 @@ class ElectoralMap:
         return fig
 
 
-def edit_viewbox(path: str,
-                 new_viewbox: str) -> None:
-    with open(path) as file:
-        data = file.read()
-        viewbox = [i for i in data.split('"')[1::2]
-                   if i.count(" ") == 3][0]
-        data = data.replace(viewbox, new_viewbox, 1)
-    with open(path, "w") as file:
-        file.write(data)
+    def draw_standard_map(self) -> None:
+        """Draws a standard map and updates its boundaries."""
+        standard_map = self.draw_map().write_image(self.name)
+        edit_viewbox(self.name, self.boundaries)
 
-
-def draw_electoral_map(data: pd.DataFrame,
-                       boundaries: str,
-                       name: str) -> None:
-    """Draws and saves a choropleth map using the ElectoralMap class.
-
-    Args:
-        data (pd.DataFrame): the data to be plotted.
-        Specifics described in the ElectoralMap class.
-        name (str): the name of the map.
-    """
-    my_map = ElectoralMap(data, boundaries, "transverse mercator")
-    my_map.draw_map().write_image(name)
-    edit_viewbox(name, "130 130 440 240")
 
 
 def main() -> None:
-    data = pd.read_excel("data-montana-pres.xlsx", header=0,
-                         index_col=0, dtype={"id": str})
-    draw_electoral_map(data, "counties.geojson",
-                       "montana-presidential.svg")
+    pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
+                             "transverse mercator",
+                             COLORS_D_PRES, COLORS_R_PRES,
+                             "montana-presidential.svg",
+                             "130 130 440 240")
+    sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
+                             "transverse mercator",
+                             COLORS_I_DOWN, COLORS_R_DOWN,
+                             "montana-senate.svg",
+                             "130 130 440 240")    
 
 
 if __name__ == "__main__":
