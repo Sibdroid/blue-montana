@@ -1,7 +1,7 @@
 # blue-montana
 
 The (hypothetical) results of 2036 US election in Montana. Created as a study 
-<br>in making choropleth map susing self-made predictions on US politics.</br>
+<br>in making choropleth map using self-made predictions on US politics.</br>
 Not a political campaign or an endorsement of any kind.
 
 ### Prerequisites:
@@ -19,10 +19,11 @@ Not a political campaign or an endorsement of any kind.
 
 ### Roadmap
 
-- [ ] Map data for presidential election.
-- [ ] Map data for Senate election.
+- [x] Map data for presidential election - completed on 17-07-2023.
+- [x] Map data for Senate election - completed on 17-07-2023.
 - [ ] Map data for House election.
   - [ ] Create congressional district map.
+- [ ] Map data for population change. 
 - [ ] Add supporting legend and prettify. 
 
 
