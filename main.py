@@ -6,6 +6,7 @@ import json
 import os
 from decimal import Decimal
 from math import pi
+import pprint
 COLORS_D_PRES = ["#B9D7FF", "#86B6F2", "#4389E3",
                  "#1666CB", "#0645B4", "#002B84"]
 COLORS_R_PRES = ["#F2B3BE", "#E27F90", "#CC2F4A",
@@ -295,8 +296,11 @@ class GraphData:
                         end_angle: float,
                         n: float,
                         seg: bool) -> str:
-        start = deg_to_rad(start_angle)
-        end = deg_to_rad(end_angle)
+        start_angle = -start_angle
+        end_angle = 360-end_angle
+        start = deg_to_rad(start_angle+90)
+        end = deg_to_rad(end_angle+90-360)
+        print(start, end)
         t = np.linspace(start, end, n)
         x = center[0]+radius*np.cos(t)
         y = center[1]+radius*np.sin(t)
@@ -309,11 +313,20 @@ class GraphData:
 
 
     def add_circle(self):
-        path = self.get_circle_path([75, 425], 60, 0, 90, 50, False)
+        total = self.result1+self.result2
+        segment1 = self.result1/total*360
+        path = self.get_circle_path([75, 425], 60, 0, 240, 50, False)
         self.figure.add_shape(type="path",
                               path=path,
-                              fillcolor="LightPink",
-                              line_color="LightPink")
+                              fillcolor=self.palette1[3],
+                              line=dict(color="white",width=1),
+                              opacity=1)
+        path = self.get_circle_path([75, 425], 60, 240, 360, 50, False)
+        self.figure.add_shape(type="path",
+                              path=path,
+                              fillcolor=self.palette2[3],
+                              line=dict(color="white",width=1),
+                              opacity=1)
 
     def save(self):
         self.figure.write_image(self.name, width=self.width,
