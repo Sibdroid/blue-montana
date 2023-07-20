@@ -219,13 +219,25 @@ class ResultRectangle:
 
     def __init__(self,
                  palette: list[str],
-                 name: str,
                  width: int,
-                 height: int) -> None:
+                 height: int,
+                 main_x_coords: list[float],
+                 main_y_coords: list[float],
+                 minor_x_coords: list[float],
+                 minor_y_coords: list[float],
+                 left_side_offset: float,
+                 minor_distance: float,
+                 name: str) -> None:
         self.palette = palette
-        self.name = name
         self.width = width
         self.height = height
+        self.main_x_coords = main_x_coords
+        self.main_y_coords = main_y_coords
+        self.minor_x_coords = minor_x_coords
+        self.minor_y_coords = minor_y_coords
+        self.left_side_offset = left_side_offset
+        self.minor_distance = minor_distance
+        self.name = name
         self.create_figure()
         self.fill_rectangles()
         self.save()
@@ -252,14 +264,12 @@ class ResultRectangle:
 
 
     def fill_rectangles(self) -> None:
-        main_x_coords = [10, 10, 490, 490, 10]
-        main_y_coords = [10, 130, 130, 10, 10]
-        self.add_rectangle(main_x_coords, main_y_coords, self.palette[-1])
-        minor_x_coords = [10, 10, 80, 80, 10]
-        minor_y_coords = [140, 190, 190, 140, 140]
-        for color in self.palette:
-            self.add_rectangle(minor_x_coords, minor_y_coords, color)
-            minor_x_coords = [i+82 for i in minor_x_coords]
+        self.add_rectangle(self.main_x_coords, self.main_y_coords, self.palette[-1])
+        for color in self.palette[::-1]:
+            self.add_rectangle(self.minor_x_coords, self.minor_y_coords, color)
+            minor_x_coords = [i+self.minor_x_coords[2]+self.minor_distance
+                              for i in self.minor_x_coords]
+            ### looks suspicious, maybe set minor_x_coords in func?
 
 
     def save(self) -> None:
@@ -280,6 +290,13 @@ def main() -> None:
                              "montana-senate.svg",
                              "130 130 440 240")
 
+
+def main():
+    rect = ResultRectangle(COLORS_D_PRES, 475, 80,
+                           [0, 0, 475, 475, 0], [0, 60, 60, 0, 0],
+                           [0, 0, 75, 75, 0], [65, 80, 80, 65, 65],
+                           10, 5, "test.svg")
+                           
 
 if __name__ == "__main__":
     main()
