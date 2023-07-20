@@ -1,9 +1,11 @@
 import typing as t
 import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
 import json
 import os
 from decimal import Decimal
+from math import pi
 COLORS_D_PRES = ["#B9D7FF", "#86B6F2", "#4389E3",
                  "#1666CB", "#0645B4", "#002B84"]
 COLORS_R_PRES = ["#F2B3BE", "#E27F90", "#CC2F4A",
@@ -82,13 +84,17 @@ def read_data(path: str,
     if extension == ".xlsx":
         df = pd.read_excel(path, header=0,
                            index_col=0, dtype=data_dtype)
-    elif extension == ".svg":
+    elif extension == ".csv":
         df = pd.read_csv(path, header=0,
                          index_col=0, dtype=data_dtype)
     else:
         error = f"The file has to be an .xlsx or a .csv, not a .{extension}"
         raise ValueError(error)
     return df
+
+
+def deg_to_rad(degrees: float) -> float:
+    return degrees*pi/180
 
 
 class ChoroplethMap:
@@ -214,36 +220,43 @@ class ChoroplethMap:
         edit_viewbox(self.name, self.boundaries)
 
 
-class ResultRectangle:
+class GraphData:
 
 
     def __init__(self,
-                 palette: list[str],
-                 width: int,
-                 height: int,
-                 main_x_coords: list[float],
-                 main_y_coords: list[float],
-                 minor_x_coords: list[float],
-                 minor_y_coords: list[float],
-                 left_side_offset: float,
-                 minor_distance: float,
+                 palette1: list[str],
+                 palette2: list[str],
+                 result1: float,
+                 result2: float,
+                 rectangle_x_coords: list[float],
+                 rectangle_y_coords: list[float],
+                 rectangle_x_margin: float,
+                 rectangle_y_margin: float,
+                 width: float,
+                 height: float,
                  name: str) -> None:
-        self.palette = palette
+        self.palette1 = palette1
+        self.palette2 = palette2
+        self.result1 = result1
+        self.result2 = result2
+        self.rectangle_x_coords = rectangle_x_coords
+        self.rectangle_y_coords = rectangle_y_coords
+        self.rectangle_x_margin = rectangle_x_margin
+        self.rectangle_y_margin = rectangle_y_margin
         self.width = width
         self.height = height
-        self.main_x_coords = main_x_coords
-        self.main_y_coords = main_y_coords
-        self.minor_x_coords = minor_x_coords
-        self.minor_y_coords = minor_y_coords
-        self.left_side_offset = left_side_offset
-        self.minor_distance = minor_distance
+        self.rectangle_length = (self.rectangle_x_coords[2]
+                                 -self.rectangle_x_coords[0])
+        self.rectangle_height = (self.rectangle_y_coords[2]
+                                 -self.rectangle_y_coords[0])
         self.name = name
         self.create_figure()
-        self.fill_rectangles()
+        self.add_rectangles()
+        self.add_circle()
         self.save()
-        
 
-    def create_figure(self) -> None:
+
+    def create_figure(self):
         self.figure = go.Figure()
         self.figure.update_layout(template='simple_white',
                                   xaxis_range=[0, self.width],
@@ -251,7 +264,8 @@ class ResultRectangle:
                                   margin=dict(l=0, r=0, t=0, b=0),
                                   showlegend=False)
         self.figure.update_xaxes(visible=False, showticklabels=False)
-        self.figure.update_yaxes(visible=False, showticklabels=False)
+        self.figure.update_yaxes(visible=False, showticklabels=False,
+                                 scaleanchor="x", scaleratio=1)
 
 
     def add_rectangle(self,
@@ -262,20 +276,49 @@ class ResultRectangle:
                                          fillcolor=color,
                                          opacity=1, mode="none"))
 
+    def add_rectangles(self):
+        assert len(self.palette1) == len(self.palette2)
+        x_coords = self.rectangle_x_coords
+        other_x_coords = [i+self.rectangle_length+self.rectangle_x_margin
+                          for i in x_coords]
+        y_coords = self.rectangle_y_coords
+        for color1, color2 in zip(self.palette1[::-1], self.palette2[::-1]):
+            self.add_rectangle(x_coords, y_coords, color1)
+            self.add_rectangle(other_x_coords, y_coords, color2)
+            y_coords = [i+self.rectangle_height+self.rectangle_y_margin
+                        for i in y_coords]
 
-    def fill_rectangles(self) -> None:
-        self.add_rectangle(self.main_x_coords, self.main_y_coords, self.palette[-1])
-        for color in self.palette[::-1]:
-            self.add_rectangle(self.minor_x_coords, self.minor_y_coords, color)
-            minor_x_coords = [i+self.minor_x_coords[2]+self.minor_distance
-                              for i in self.minor_x_coords]
-            ### looks suspicious, maybe set minor_x_coords in func?
+    def get_circle_path(self,
+                        center: list[float, float],
+                        radius: float,
+                        start_angle: float,
+                        end_angle: float,
+                        n: float,
+                        seg: bool) -> str:
+        start = deg_to_rad(start_angle)
+        end = deg_to_rad(end_angle)
+        t = np.linspace(start, end, n)
+        x = center[0]+radius*np.cos(t)
+        y = center[1]+radius*np.sin(t)
+        path = f"M {x[0]},{y[0]}"
+        for xc, yc in zip(x[1:], y[1:]):
+            path += f" L{xc},{yc}"
+        if seg:
+            return path + "Z"
+        return path + f" L{center[0]},{center[1]} Z"
 
 
-    def save(self) -> None:
+    def add_circle(self):
+        path = self.get_circle_path([75, 425], 60, 0, 90, 50, False)
+        self.figure.add_shape(type="path",
+                              path=path,
+                              fillcolor="LightPink",
+                              line_color="LightPink")
+
+    def save(self):
         self.figure.write_image(self.name, width=self.width,
                                 height=self.height)
-                                
+
 
 
 def main() -> None:
@@ -291,11 +334,10 @@ def main() -> None:
                              "130 130 440 240")
 
 
-def main():
-    rect = ResultRectangle(COLORS_D_PRES, 475, 80,
-                           [0, 0, 475, 475, 0], [0, 60, 60, 0, 0],
-                           [0, 0, 75, 75, 0], [65, 80, 80, 65, 65],
-                           10, 5, "test.svg")
+def main() -> None:
+    data = GraphData(COLORS_D_PRES, COLORS_R_PRES, 60, 40,
+                     [50, 50, 95, 95, 50], [105, 130, 130, 105, 105],
+                     5, 10, 150, 500, "test-new-circle.svg")
                            
 
 if __name__ == "__main__":
