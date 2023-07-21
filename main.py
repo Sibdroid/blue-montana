@@ -342,7 +342,7 @@ class GraphData:
                                           fillcolor=color,
                                           opacity=1, mode="none"))
 
-    def add_rectangles(self):
+    def add_rectangles(self) -> None:
         """Adds an N*2 set of rectangles to the figure,
         where N is the amount of colors given in palette1 and palette2."""
         x_coords = self.rectangle_x_coords
@@ -362,7 +362,7 @@ class GraphData:
                     end_angle: float,
                     n: float,
                     is_seg: bool,
-                    color: str) -> str:
+                    color: str) -> None:
         """Adds a sector of a circle to the figure.
 
         Args:
@@ -405,7 +405,7 @@ class GraphData:
                               opacity=1)
 
 
-    def add_circle(self):
+    def add_circle(self) -> None:
         """Adds the main circle with results to the figure.
         The circle consists of three partS: the sector for the
         result1, the sector for the result2, and the sector for
@@ -419,8 +419,21 @@ class GraphData:
         self._add_circle(point, 60, segment1, segment2, 50, False, self.palette2[2])
         self._add_circle(point, 60, segment2, 360, 50, False, COLOR_OTHER)
 
-    def save(self):
+
+    def _add_text(self,
+                  point: list[float, float],
+                  text: str,
+                  size: float) -> None:
+        self.figure.add_annotation(x=point[0], y=point[1], text=text,
+                                   showarrow=False, ax=0, ay=0,
+                                   font=dict(size=size))
+
+    def save(self) -> None:
         """Saves the figure."""
+        self._add_text([21, 126.5], "90%-", 13)
+        self._add_text([21, 113.5], "100%", 13)
+        self._add_text([21, 161.5], "80%-", 13)
+        self._add_text([17, 148.5], "90%", 13)
         self.figure.write_image(self.name, width=self.width,
                                 height=self.height)
 
