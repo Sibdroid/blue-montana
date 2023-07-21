@@ -17,7 +17,7 @@ COLORS_I_DOWN = ["#D9D9D9", "#BDBDBD", "#969696",
                  "#737373", "#555555", "#555555"]
 COLORS_R_DOWN = ["#FFB2B2", "#E27F7F", "#D75D5D",
                  "#D72F30", "#C21B18", "#A80000"]
-COLOR_OTHER = "#D1D1D1"
+COLOR_OTHER = "#D2D278"
 THRESH_MARGIN = [40, 50, 60, 70, 80, 90, 100]
 POINT = t.Tuple[float, float]
 WHITE = "#FFFFFF"
@@ -111,7 +111,7 @@ class ChoroplethMap:
                  name: str,
                  boundaries: str,
                  draw_instantly: bool=True) -> None:
-        """Initializes the instance of ChoroplethMap class.
+        """Initializes an instance of ChoroplethMap class.
 
         Args:
             data (str): the path to the data.
@@ -236,7 +236,31 @@ class GraphData:
                  rectangle_y_margin: float,
                  width: float,
                  height: float,
-                 name: str) -> None:
+                 name: str,
+                 draw_instantly: bool=True) -> None:
+        """Initializes an instance of GraphData class.
+
+        Args:
+            palette1 (list[str]): the first set of colors.
+            palette2 (list[str]): the second set of colors.
+            result1 (float): the result of the first candidate.
+            result2 (float): the result of the second candidate.
+            rectangle_x_coords (list[float]): the 'x' coordinates
+            of the bottom-left rectangle. From this point on, all
+            coordinates for rectangles are given in five-value format:
+            [a, b, c, d, a].
+            rectangle_y_coords (list[float]): the 'y' coordinates
+            of the bottom-left rectangle.
+            rectangle_x_margin (float): the horizontal margin between
+            the rectangles.
+            rectangle_y_margin (float): the vertical margin between
+            the rectangles.
+            width (float): the width of the image.
+            height (float): the height of the image.
+            name (str): the name of the image.
+            Strongly advised to be <name>.svg.
+            draw_instantly (bool): whether to draw the map when initialized.
+            Defaults to True."""
         self.palette1 = palette1
         self.palette2 = palette2
         self.result1 = result1
@@ -247,18 +271,22 @@ class GraphData:
         self.rectangle_y_margin = rectangle_y_margin
         self.width = width
         self.height = height
+        self.name = name
+        self.draw_instantly = draw_instantly
         self.rectangle_length = (self.rectangle_x_coords[2]
                                  -self.rectangle_x_coords[0])
         self.rectangle_height = (self.rectangle_y_coords[2]
                                  -self.rectangle_y_coords[0])
-        self.name = name
-        self.create_figure()
-        self.add_rectangles()
-        self.add_circle()
-        self.save()
+        if self.draw_instantly:
+            self.create_figure()
+            self.add_rectangles()
+            self.add_circle()
+            self.save()
 
 
     def create_figure(self):
+        """Creates an empty figure with white background, hidden axis
+        and 1-to-1 ratio."""
         self.figure = go.Figure()
         self.figure.update_layout(template='simple_white',
                                   xaxis_range=[0, self.width],
@@ -274,11 +302,25 @@ class GraphData:
                        x_coords: list[float],
                        y_coords: list[float],
                        color: str) -> None:
+         """Adds a rectangle to the figure.
+
+         Args:
+             x_coords (list[float]): the 'x' coordinates of a rectangle.
+             y_coords (list[float): the 'y' coordinates of a rectangle.
+             color (str): the color.
+
+         Example(s):
+             >>> self._add_rectangle([2, 2, 6, 6, 2], [1, 3, 3, 1, 1], "red")
+             # Adds a red rectangle with the following points:
+             # (2, 1), (2, 3), (6, 3), (6, 1).
+         """
          self.figure.add_trace(go.Scatter(x=x_coords, y=y_coords, fill="toself",
                                           fillcolor=color,
                                           opacity=1, mode="none"))
 
     def add_rectangles(self):
+        """Adds an N*2 set of rectangles to the figure,
+        where N is the amount of colors given in palette1 and palette2."""
         assert len(self.palette1) == len(self.palette2)
         x_coords = self.rectangle_x_coords
         other_x_coords = [i+self.rectangle_length+self.rectangle_x_margin
@@ -296,8 +338,29 @@ class GraphData:
                     start_angle: float,
                     end_angle: float,
                     n: float,
-                    seg: bool,
+                    is_seg: bool,
                     color: str) -> str:
+        """Adds a sector of a circle to the figure.
+
+        Args:
+            center (list[float, float]): the central point.
+            radius (float): the radius ot the sector.
+            start_angle (float): the starting angle.
+            end_angle (float): the ending angle.
+            n (float): uncertain, presumably the amount of points
+            creating the circle. Advised to set to 50 for small-ish circles.
+            is_seg (bool): whether a sector is a segment. If set to True,
+            adds slices, if set to False, adds sectors.
+            color (str): the color of the circle.
+
+        Example(s):
+            >>> self._add_circle([2, 2], 2, 0, 90, 50, False, "blue")
+            # Adds a blue upper-right sector of a circle with center at
+            # (2, 2) and a radius 0f 2.
+            >>> self._add_circle([3, -2], 4, 180, 315, False, "green")
+            # Adds a green left half without the top eighth part of
+            a circle with center at (3, -2) and a radius of 4.
+        """
         start_angle = -start_angle
         end_angle = 360-end_angle
         start = deg_to_rad(start_angle+90)
@@ -308,7 +371,7 @@ class GraphData:
         path = f"M {x[0]},{y[0]}"
         for xc, yc in zip(x[1:], y[1:]):
             path += f" L{xc},{yc}"
-        if seg:
+        if is_seg:
             path += "Z"
         else:
             path += f" L{center[0]},{center[1]} Z"
@@ -320,15 +383,21 @@ class GraphData:
 
 
     def add_circle(self):
+        """Adds the main circle with results to the figure.
+        The circle consists of three partS: the sector for the
+        result1, the sector for the result2, and the sector for
+        other results, calculated as 100-result1-result2.
+        If result1 and result2 combine for 100, there is no third sector.
+        """
         segment1 = self.result1/100*360
         segment2 = self.result2/100*360+segment1
-        print(segment1, segment2)
         point = [75, 425]
         self._add_circle(point, 60, 0, segment1, 50, False, self.palette1[2])
         self._add_circle(point, 60, segment1, segment2, 50, False, self.palette2[2])
         self._add_circle(point, 60, segment2, 360, 50, False, COLOR_OTHER)
 
     def save(self):
+        """Saves the figure."""
         self.figure.write_image(self.name, width=self.width,
                                 height=self.height)
 
