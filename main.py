@@ -17,6 +17,7 @@ COLORS_I_DOWN = ["#D9D9D9", "#BDBDBD", "#969696",
                  "#737373", "#555555", "#555555"]
 COLORS_R_DOWN = ["#FFB2B2", "#E27F7F", "#D75D5D",
                  "#D72F30", "#C21B18", "#A80000"]
+COLOR_OTHER = "#D1D1D1"
 THRESH_MARGIN = [40, 50, 60, 70, 80, 90, 100]
 POINT = t.Tuple[float, float]
 WHITE = "#FFFFFF"
@@ -269,13 +270,13 @@ class GraphData:
                                  scaleanchor="x", scaleratio=1)
 
 
-    def add_rectangle(self,
-                      x_coords: list[float],
-                      y_coords: list[float],
-                      color: str) -> None:
-        self.figure.add_trace(go.Scatter(x=x_coords, y=y_coords, fill="toself",
-                                         fillcolor=color,
-                                         opacity=1, mode="none"))
+    def _add_rectangle(self,
+                       x_coords: list[float],
+                       y_coords: list[float],
+                       color: str) -> None:
+         self.figure.add_trace(go.Scatter(x=x_coords, y=y_coords, fill="toself",
+                                          fillcolor=color,
+                                          opacity=1, mode="none"))
 
     def add_rectangles(self):
         assert len(self.palette1) == len(self.palette2)
@@ -284,23 +285,23 @@ class GraphData:
                           for i in x_coords]
         y_coords = self.rectangle_y_coords
         for color1, color2 in zip(self.palette1[::-1], self.palette2[::-1]):
-            self.add_rectangle(x_coords, y_coords, color1)
-            self.add_rectangle(other_x_coords, y_coords, color2)
+            self._add_rectangle(x_coords, y_coords, color1)
+            self._add_rectangle(other_x_coords, y_coords, color2)
             y_coords = [i+self.rectangle_height+self.rectangle_y_margin
                         for i in y_coords]
 
-    def get_circle_path(self,
-                        center: list[float, float],
-                        radius: float,
-                        start_angle: float,
-                        end_angle: float,
-                        n: float,
-                        seg: bool) -> str:
+    def _add_circle(self,
+                    center: list[float, float],
+                    radius: float,
+                    start_angle: float,
+                    end_angle: float,
+                    n: float,
+                    seg: bool,
+                    color: str) -> str:
         start_angle = -start_angle
         end_angle = 360-end_angle
         start = deg_to_rad(start_angle+90)
         end = deg_to_rad(end_angle+90-360)
-        print(start, end)
         t = np.linspace(start, end, n)
         x = center[0]+radius*np.cos(t)
         y = center[1]+radius*np.sin(t)
@@ -308,25 +309,24 @@ class GraphData:
         for xc, yc in zip(x[1:], y[1:]):
             path += f" L{xc},{yc}"
         if seg:
-            return path + "Z"
-        return path + f" L{center[0]},{center[1]} Z"
+            path += "Z"
+        else:
+            path += f" L{center[0]},{center[1]} Z"
+        self.figure.add_shape(type="path",
+                              path=path,
+                              fillcolor=color,
+                              line=dict(color="white", width=1),
+                              opacity=1)
 
 
     def add_circle(self):
-        total = self.result1+self.result2
-        segment1 = self.result1/total*360
-        path = self.get_circle_path([75, 425], 60, 0, 240, 50, False)
-        self.figure.add_shape(type="path",
-                              path=path,
-                              fillcolor=self.palette1[3],
-                              line=dict(color="white",width=1),
-                              opacity=1)
-        path = self.get_circle_path([75, 425], 60, 240, 360, 50, False)
-        self.figure.add_shape(type="path",
-                              path=path,
-                              fillcolor=self.palette2[3],
-                              line=dict(color="white",width=1),
-                              opacity=1)
+        segment1 = self.result1/100*360
+        segment2 = self.result2/100*360+segment1
+        print(segment1, segment2)
+        point = [75, 425]
+        self._add_circle(point, 60, 0, segment1, 50, False, self.palette1[2])
+        self._add_circle(point, 60, segment1, segment2, 50, False, self.palette2[2])
+        self._add_circle(point, 60, segment2, 360, 50, False, COLOR_OTHER)
 
     def save(self):
         self.figure.write_image(self.name, width=self.width,
@@ -348,7 +348,7 @@ def main() -> None:
 
 
 def main() -> None:
-    data = GraphData(COLORS_D_PRES, COLORS_R_PRES, 60, 40,
+    data = GraphData(COLORS_D_PRES, COLORS_R_PRES, 58, 38,
                      [50, 50, 95, 95, 50], [105, 130, 130, 105, 105],
                      5, 10, 150, 500, "test-new-circle.svg")
                            
