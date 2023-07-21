@@ -81,6 +81,9 @@ def read_data(path: str,
 
     Returns:
         A pd.DataFrame.
+
+    Raises:
+        A ValueError in case the file is neither an .xlsx nor an .svg.
     """
     name, extension = os.path.splitext(path)
     if extension == ".xlsx":
@@ -96,6 +99,20 @@ def read_data(path: str,
 
 
 def deg_to_rad(degrees: float) -> float:
+    """Converts degrees to radians.
+
+    Args:
+        degrees (float).
+
+    Returns:
+        The converted value.
+
+    Example(s):
+        >>> deg_to_rad(90)
+        1.5707963267948966
+        >>> deg_to_rad(135)
+        2.356194490192345
+    """
     return degrees*pi/180
 
 
@@ -246,9 +263,7 @@ class GraphData:
             result1 (float): the result of the first candidate.
             result2 (float): the result of the second candidate.
             rectangle_x_coords (list[float]): the 'x' coordinates
-            of the bottom-left rectangle. From this point on, all
-            coordinates for rectangles are given in five-value format:
-            [a, b, c, d, a].
+            of the bottom-left rectangle.
             rectangle_y_coords (list[float]): the 'y' coordinates
             of the bottom-left rectangle.
             rectangle_x_margin (float): the horizontal margin between
@@ -260,13 +275,23 @@ class GraphData:
             name (str): the name of the image.
             Strongly advised to be <name>.svg.
             draw_instantly (bool): whether to draw the map when initialized.
-            Defaults to True."""
+            Defaults to True.
+
+        Raises:
+            A ValueError if palettes have different lengths.
+            A ValueError if the sum of results is greater than 100."""
+        if len(palette1) != len(palette2):
+            raise ValueError("The palettes should have the same length")
         self.palette1 = palette1
         self.palette2 = palette2
+        if result1+result2 > 100:
+            raise ValueError("The sum of results should not be more than 100")
         self.result1 = result1
         self.result2 = result2
         self.rectangle_x_coords = rectangle_x_coords
         self.rectangle_y_coords = rectangle_y_coords
+        self.rectangle_x_coords += [self.rectangle_x_coords[-1]]
+        self.rectangle_y_coords += [self.rectangle_y_coords[-1]]
         self.rectangle_x_margin = rectangle_x_margin
         self.rectangle_y_margin = rectangle_y_margin
         self.width = width
@@ -285,8 +310,7 @@ class GraphData:
 
 
     def create_figure(self):
-        """Creates an empty figure with white background, hidden axis
-        and 1-to-1 ratio."""
+        """Creates an empty figure with white background and hidden axis."""
         self.figure = go.Figure()
         self.figure.update_layout(template='simple_white',
                                   xaxis_range=[0, self.width],
@@ -310,7 +334,7 @@ class GraphData:
              color (str): the color.
 
          Example(s):
-             >>> self._add_rectangle([2, 2, 6, 6, 2], [1, 3, 3, 1, 1], "red")
+             >>> self._add_rectangle([2, 2, 6, 6], [1, 3, 3, 1], "red")
              # Adds a red rectangle with the following points:
              # (2, 1), (2, 3), (6, 3), (6, 1).
          """
@@ -321,7 +345,6 @@ class GraphData:
     def add_rectangles(self):
         """Adds an N*2 set of rectangles to the figure,
         where N is the amount of colors given in palette1 and palette2."""
-        assert len(self.palette1) == len(self.palette2)
         x_coords = self.rectangle_x_coords
         other_x_coords = [i+self.rectangle_length+self.rectangle_x_margin
                           for i in x_coords]
@@ -418,7 +441,7 @@ def main() -> None:
 
 def main() -> None:
     data = GraphData(COLORS_D_PRES, COLORS_R_PRES, 58, 38,
-                     [50, 50, 95, 95, 50], [105, 130, 130, 105, 105],
+                     [50, 50, 95, 95], [105, 130, 130, 105],
                      5, 10, 150, 500, "test-new-circle.svg")
                            
 
