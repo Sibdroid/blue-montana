@@ -247,6 +247,7 @@ class GraphData:
                  palette2: list[str],
                  result1: float,
                  result2: float,
+                 turnout: float,
                  rectangle_x_coords: list[float],
                  rectangle_y_coords: list[float],
                  rectangle_x_margin: float,
@@ -268,6 +269,7 @@ class GraphData:
             palette2 (list[str]): the second set of colors.
             result1 (float): the result of the first candidate.
             result2 (float): the result of the second candidate.
+            turnout (float): the turnout.
             rectangle_x_coords (list[float]): the 'x' coordinates
             of the bottom-left rectangle.
             rectangle_y_coords (list[float]): the 'y' coordinates
@@ -286,7 +288,7 @@ class GraphData:
             vertical text entries.
             vertical_text_point (list[float]): the coordinates of the
             left vertical text entry.
-            vertical_texT_size (float): the size of the vertical
+            vertical_text_size (float): the size of the vertical
             text entries.
             width (float): the width of the image.
             height (float): the height of the image.
@@ -303,9 +305,12 @@ class GraphData:
         self.palette1 = palette1
         self.palette2 = palette2
         if result1+result2 > 100:
-            raise ValueError("The sum of results should not be more than 100")
+            raise ValueError("The sum of results cannot not be more than 100")
         self.result1 = result1
         self.result2 = result2
+        if turnout > 100:
+            raise ValueError("The turnout cannot be more than 100")
+        self.turnout = turnout
         self.rectangle_x_coords = rectangle_x_coords
         self.rectangle_y_coords = rectangle_y_coords
         self.rectangle_x_coords += [self.rectangle_x_coords[-1]]
@@ -436,9 +441,12 @@ class GraphData:
         other results, calculated as 100-result1-result2.
         If result1 and result2 combine for 100, there is no third sector.
         """
+        segment0 = self.turnout/100*360
         segment1 = self.result1/100*360
         segment2 = self.result2/100*360+segment1
         point = [75, 425]
+        self._add_circle(point, 66, 0, segment0, 50, False, COLOR_OTHER)
+        self._add_circle(point, 63, 0, 360, 50, False, "white")
         self._add_circle(point, 60, 0, segment1, 50, False, self.palette1[1])
         self._add_circle(point, 60, segment1, segment2, 50, False, self.palette2[1])
         self._add_circle(point, 60, segment2, 360, 50, False, COLOR_OTHER)
@@ -486,10 +494,10 @@ def main() -> None:
 
 def main() -> None:
     text = [f">{i}%" for i in range(40, 100, 10)][::-1]
-    data = GraphData(COLORS_D_PRES, COLORS_R_PRES, 58, 38,
+    data = GraphData(COLORS_R_PRES, COLORS_D_PRES, 56.92, 40.55, 73.10,
                      [50, 50, 95, 95], [105, 130, 130, 105],
                      5, 10, text, [24, 118.5], 13,
-                     ["D", "R"], [75, 320], 16, 150, 500,
+                     ["R", "D"], [75, 320], 16, 150, 500,
                      "test-new-circle.svg")
                            
 
