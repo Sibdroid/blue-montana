@@ -251,6 +251,9 @@ class GraphData:
                  rectangle_y_coords: list[float],
                  rectangle_x_margin: float,
                  rectangle_y_margin: float,
+                 horizontal_text: list[str],
+                 horizontal_text_point: list[float],
+                 horizontal_text_size: float,
                  width: float,
                  height: float,
                  name: str,
@@ -270,6 +273,12 @@ class GraphData:
             the rectangles.
             rectangle_y_margin (float): the vertical margin between
             the rectangles.
+            horizontal_text (list[str]): the text values of the
+            horizontal text entries.
+            horizontal_text_point (list[float]): the coordinates of the
+            bottom-left horizontal text entry.
+            horizontal_text_size (float): the size of the horizontal
+            text entries.
             width (float): the width of the image.
             height (float): the height of the image.
             name (str): the name of the image.
@@ -294,6 +303,9 @@ class GraphData:
         self.rectangle_y_coords += [self.rectangle_y_coords[-1]]
         self.rectangle_x_margin = rectangle_x_margin
         self.rectangle_y_margin = rectangle_y_margin
+        self.horizontal_text_point = horizontal_text_point
+        self.horizontal_text = horizontal_text
+        self.horizontal_text_size = horizontal_text_size
         self.width = width
         self.height = height
         self.name = name
@@ -306,6 +318,7 @@ class GraphData:
             self.create_figure()
             self.add_rectangles()
             self.add_circle()
+            self.add_text()
             self.save()
 
 
@@ -428,12 +441,17 @@ class GraphData:
                                    showarrow=False, ax=0, ay=0,
                                    font=dict(size=size))
 
+    def add_text(self):
+        point = self.horizontal_text_point
+        for text in self.horizontal_text:
+            self._add_text(point, text, self.horizontal_text_size)
+            point[1] += self.rectangle_height+self.rectangle_y_margin
+
+
     def save(self) -> None:
         """Saves the figure."""
-        self._add_text([21, 126.5], "90%-", 13)
-        self._add_text([21, 113.5], "100%", 13)
-        self._add_text([21, 161.5], "80%-", 13)
-        self._add_text([17, 148.5], "90%", 13)
+        #self._add_text([22, 153.5], ">80%", 13)
+        #self._add_text(self.horizontal_text_point, ">90%", 13)
         self.figure.write_image(self.name, width=self.width,
                                 height=self.height)
 
@@ -453,9 +471,10 @@ def main() -> None:
 
 
 def main() -> None:
+    text = [f">{i}%" for i in range(40, 100, 10)][::-1]
     data = GraphData(COLORS_D_PRES, COLORS_R_PRES, 58, 38,
                      [50, 50, 95, 95], [105, 130, 130, 105],
-                     5, 10, 150, 500, "test-new-circle.svg")
+                     5, 10, text, [22, 118.5], 13, 150, 500, "test-new-circle.svg")
                            
 
 if __name__ == "__main__":
