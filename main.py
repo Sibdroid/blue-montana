@@ -17,7 +17,7 @@ COLORS_I_DOWN = ["#D9D9D9", "#BDBDBD", "#969696",
                  "#737373", "#555555", "#555555"]
 COLORS_R_DOWN = ["#FFB2B2", "#E27F7F", "#D75D5D",
                  "#D72F30", "#C21B18", "#A80000"]
-COLOR_OTHER = "#D2D278"
+COLOR_OTHER = "#696969"
 THRESH_MARGIN = [40, 50, 60, 70, 80, 90, 100]
 POINT = t.Tuple[float, float]
 WHITE = "#FFFFFF"
@@ -254,6 +254,9 @@ class GraphData:
                  horizontal_text: list[str],
                  horizontal_text_point: list[float],
                  horizontal_text_size: float,
+                 vertical_text: list[str],
+                 vertical_text_point: list[float],
+                 vertical_text_size: float,
                  width: float,
                  height: float,
                  name: str,
@@ -278,6 +281,12 @@ class GraphData:
             horizontal_text_point (list[float]): the coordinates of the
             bottom-left horizontal text entry.
             horizontal_text_size (float): the size of the horizontal
+            text entries.
+            vertical_text (list[str]): the text values of the
+            vertical text entries.
+            vertical_text_point (list[float]): the coordinates of the
+            left vertical text entry.
+            vertical_texT_size (float): the size of the vertical
             text entries.
             width (float): the width of the image.
             height (float): the height of the image.
@@ -306,12 +315,15 @@ class GraphData:
         self.horizontal_text_point = horizontal_text_point
         self.horizontal_text = horizontal_text
         self.horizontal_text_size = horizontal_text_size
+        self.vertical_text_point = vertical_text_point
+        self.vertical_text = vertical_text
+        self.vertical_text_size = vertical_text_size
         self.width = width
         self.height = height
         self.name = name
         self.draw_instantly = draw_instantly
-        self.rectangle_length = (self.rectangle_x_coords[2]
-                                 -self.rectangle_x_coords[0])
+        self.rectangle_width = (self.rectangle_x_coords[2]
+                                -self.rectangle_x_coords[0])
         self.rectangle_height = (self.rectangle_y_coords[2]
                                  -self.rectangle_y_coords[0])
         if self.draw_instantly:
@@ -359,7 +371,7 @@ class GraphData:
         """Adds an N*2 set of rectangles to the figure,
         where N is the amount of colors given in palette1 and palette2."""
         x_coords = self.rectangle_x_coords
-        other_x_coords = [i+self.rectangle_length+self.rectangle_x_margin
+        other_x_coords = [i+self.rectangle_width+self.rectangle_x_margin
                           for i in x_coords]
         y_coords = self.rectangle_y_coords
         for color1, color2 in zip(self.palette1[::-1], self.palette2[::-1]):
@@ -414,7 +426,6 @@ class GraphData:
         self.figure.add_shape(type="path",
                               path=path,
                               fillcolor=color,
-                              line=dict(color="white", width=1),
                               opacity=1)
 
 
@@ -428,9 +439,10 @@ class GraphData:
         segment1 = self.result1/100*360
         segment2 = self.result2/100*360+segment1
         point = [75, 425]
-        self._add_circle(point, 60, 0, segment1, 50, False, self.palette1[2])
-        self._add_circle(point, 60, segment1, segment2, 50, False, self.palette2[2])
+        self._add_circle(point, 60, 0, segment1, 50, False, self.palette1[1])
+        self._add_circle(point, 60, segment1, segment2, 50, False, self.palette2[1])
         self._add_circle(point, 60, segment2, 360, 50, False, COLOR_OTHER)
+        self._add_circle(point, 30, 0, 360, 50, False, "white")
 
 
     def _add_text(self,
@@ -446,12 +458,14 @@ class GraphData:
         for text in self.horizontal_text:
             self._add_text(point, text, self.horizontal_text_size)
             point[1] += self.rectangle_height+self.rectangle_y_margin
+        point = self.vertical_text_point
+        for text in self.vertical_text:
+            self._add_text(point, text, self.vertical_text_size)
+            point[0] += self.rectangle_width
 
 
     def save(self) -> None:
         """Saves the figure."""
-        #self._add_text([22, 153.5], ">80%", 13)
-        #self._add_text(self.horizontal_text_point, ">90%", 13)
         self.figure.write_image(self.name, width=self.width,
                                 height=self.height)
 
@@ -474,7 +488,9 @@ def main() -> None:
     text = [f">{i}%" for i in range(40, 100, 10)][::-1]
     data = GraphData(COLORS_D_PRES, COLORS_R_PRES, 58, 38,
                      [50, 50, 95, 95], [105, 130, 130, 105],
-                     5, 10, text, [22, 118.5], 13, 150, 500, "test-new-circle.svg")
+                     5, 10, text, [24, 118.5], 13,
+                     ["D", "R"], [75, 320], 16, 150, 500,
+                     "test-new-circle.svg")
                            
 
 if __name__ == "__main__":
