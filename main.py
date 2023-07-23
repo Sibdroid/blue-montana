@@ -6,7 +6,6 @@ import json
 import os
 from decimal import Decimal
 from math import pi
-import pprint
 COLORS_D_PRES = ["#B9D7FF", "#86B6F2", "#4389E3",
                  "#1666CB", "#0645B4", "#002B84"]
 COLORS_R_PRES = ["#F2B3BE", "#E27F90", "#CC2F4A",
@@ -249,6 +248,9 @@ class GraphData:
                  result1: float,
                  result2: float,
                  turnout: float,
+                 major_rectangle_x_coords: list[float],
+                 major_rectangle_y_coords: list[float],
+                 major_rectangle_y_margin: float,
                  rectangle_x_coords: list[float],
                  rectangle_y_coords: list[float],
                  rectangle_x_margin: float,
@@ -273,12 +275,16 @@ class GraphData:
             result1 (float): the result of the first candidate.
             result2 (float): the result of the second candidate.
             turnout (float): the turnout.
+            major_rectangle_x_coords (list[float): the 'x' coordinates
+            of the bottom major rectangle.
+            major_rectangle_x_coords (list[float): the 'y' coordinates
+            of the bottom major rectangle.
+            major_rectangle_y_margin (float): the vertical margin
+            between the major rectangles.
             rectangle_x_coords (list[float]): the 'x' coordinates
             of the bottom-left rectangle.
             rectangle_y_coords (list[float]): the 'y' coordinates
             of the bottom-left rectangle.
-            rectangle_x_margin (float): the horizontal margin between
-            the rectangles.
             rectangle_y_margin (float): the vertical margin between
             the rectangles.
             circle_point (list[float]): the coordinates of the center
@@ -322,6 +328,11 @@ class GraphData:
         if turnout > 100:
             raise ValueError("The turnout cannot be more than 100")
         self.turnout = turnout
+        self.major_rectangle_x_coords = major_rectangle_x_coords
+        self.major_rectangle_y_coords = major_rectangle_y_coords
+        self.major_rectangle_x_coords += [self.major_rectangle_x_coords[-1]]
+        self.major_rectangle_y_coords += [self.major_rectangle_y_coords[-1]]
+        self.major_rectangle_y_margin = major_rectangle_y_margin
         self.rectangle_x_coords = rectangle_x_coords
         self.rectangle_y_coords = rectangle_y_coords
         self.rectangle_x_coords += [self.rectangle_x_coords[-1]]
@@ -342,12 +353,17 @@ class GraphData:
         self.height = height
         self.name = name
         self.draw_instantly = draw_instantly
+        self.major_rectangle_width = (self.major_rectangle_x_coords[2]
+                                      -self.major_rectangle_x_coords[0])
+        self.major_rectangle_height = (self.major_rectangle_y_coords[2]
+                                       -self.major_rectangle_y_coords[0])
         self.rectangle_width = (self.rectangle_x_coords[2]
                                 -self.rectangle_x_coords[0])
         self.rectangle_height = (self.rectangle_y_coords[2]
                                  -self.rectangle_y_coords[0])
         if self.draw_instantly:
             self.create_figure()
+            self.add_major_rectangle()
             self.add_rectangles()
             self.add_circle()
             self.add_text()
@@ -386,6 +402,17 @@ class GraphData:
          self.figure.add_trace(go.Scatter(x=x_coords, y=y_coords, fill="toself",
                                           fillcolor=color,
                                           opacity=1, mode="none"))
+
+    def add_major_rectangle(self):
+        """Adds two major rectangles to the figure, one for each
+        candidate."""
+        x_coords = self.major_rectangle_x_coords
+        y_coords = self.major_rectangle_y_coords
+        self._add_rectangle(x_coords, y_coords, self.palette2[1])
+        y_coords = [i+self.major_rectangle_height+self.major_rectangle_y_margin
+                    for i in y_coords]
+        self._add_rectangle(x_coords, y_coords, self.palette1[1])
+
 
     def add_rectangles(self) -> None:
         """Adds an N*2 set of rectangles to the figure,
@@ -514,11 +541,29 @@ def main() -> None:
 
 def main() -> None:
     text = [f">{i}%" for i in range(40, 100, 10)][::-1]
-    data = GraphData(COLORS_R_PRES, COLORS_D_PRES, 56.92, 40.55, 73.10,
-                     [195, 195, 240, 240], [170, 195, 195, 170],
-                     5, 10, [80, 300], [66, 63, 60, 30],
-                     text, [169, 183.5], 13, ["D", "R"], [0, 0], 1,
-                     300, 500, "test-new-circle-big.svg")
+    data = GraphData(palette1=COLORS_R_PRES,
+                     palette2=COLORS_D_PRES,
+                     result1=56.92,
+                     result2=40.55,
+                     turnout=73.10,
+                     major_rectangle_x_coords=[10, 10, 290, 290],
+                     major_rectangle_y_coords=[385, 435, 435, 385],
+                     major_rectangle_y_margin=5,
+                     rectangle_x_coords=[195, 195, 240, 240],
+                     rectangle_y_coords=[170, 195, 195, 170],
+                     rectangle_x_margin=5,
+                     rectangle_y_margin=10,
+                     circle_point=[80, 300],
+                     circle_radii=[66, 63, 60, 30],
+                     horizontal_text=text,
+                     horizontal_text_point=[169, 183.5],
+                     horizontal_text_size=13,
+                     vertical_text=["D", "R"],
+                     vertical_text_point=[0, 0],
+                     vertical_text_size=1,
+                     width=300,
+                     height=500,
+                     name="test-new-circle-big.svg")
                            
 
 if __name__ == "__main__":
