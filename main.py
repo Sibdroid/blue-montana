@@ -261,7 +261,8 @@ class GraphData:
                  horizontal_text_point: list[float],
                  horizontal_text_size: float,
                  vertical_text: list[str],
-                 vertical_text_point: list[float],
+                 vertical_text_point1: list[float],
+                 vertical_text_point2: list[float],
                  vertical_text_size: float,
                  width: float,
                  height: float,
@@ -303,8 +304,10 @@ class GraphData:
             text entries.
             vertical_text (list[str]): the text values of the
             vertical text entries.
-            vertical_text_point (list[float]): the coordinates of the
+            vertical_text_point1 (list[float]): the coordinates of the
             left vertical text entry.
+            vertical_text_point2 (list[float]): the coordinates of the
+            right vertical text entry.
             vertical_text_size (float): the size of the vertical
             text entries.
             width (float): the width of the image.
@@ -346,7 +349,8 @@ class GraphData:
         self.horizontal_text_point = horizontal_text_point
         self.horizontal_text = horizontal_text
         self.horizontal_text_size = horizontal_text_size
-        self.vertical_text_point = vertical_text_point
+        self.vertical_text_point1 = vertical_text_point1
+        self.vertical_text_point2 = vertical_text_point2
         self.vertical_text = vertical_text
         self.vertical_text_size = vertical_text_size
         self.width = width
@@ -511,12 +515,14 @@ class GraphData:
     def add_text(self):
         point = self.horizontal_text_point
         for text in self.horizontal_text:
+            print(point)
             self._add_text(point, text, self.horizontal_text_size)
             point[1] += self.rectangle_height+self.rectangle_y_margin
-        point = self.vertical_text_point
-        for text in self.vertical_text:
-            self._add_text(point, text, self.vertical_text_size)
-            point[0] += self.rectangle_width
+        self._add_text(self.vertical_text_point1, self.vertical_text[0],
+                       self.vertical_text_size)
+        self._add_text(self.vertical_text_point2, self.vertical_text[1],
+                       self.vertical_text_size)
+        self._add_text(self.circle_point, f"{self.turnout}%", 14)
 
 
     def save(self) -> None:
@@ -550,17 +556,18 @@ def main() -> None:
                      major_rectangle_y_coords=[385, 435, 435, 385],
                      major_rectangle_y_margin=5,
                      rectangle_x_coords=[195, 195, 240, 240],
-                     rectangle_y_coords=[170, 195, 195, 170],
+                     rectangle_y_coords=[175, 200, 200, 175],
                      rectangle_x_margin=5,
                      rectangle_y_margin=10,
-                     circle_point=[80, 300],
+                     circle_point=[80, 305],
                      circle_radii=[66, 63, 60, 30],
                      horizontal_text=text,
-                     horizontal_text_point=[169, 183.5],
+                     horizontal_text_point=[169, 188.5],
                      horizontal_text_size=13,
-                     vertical_text=["D", "R"],
-                     vertical_text_point=[0, 0],
-                     vertical_text_size=1,
+                     vertical_text=["R", "D"],
+                     vertical_text_point1=[217.5, 160],
+                     vertical_text_point2=[265, 160],
+                     vertical_text_size=13,
                      width=300,
                      height=500,
                      name="test-new-circle-big.svg")
