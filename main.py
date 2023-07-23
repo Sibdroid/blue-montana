@@ -184,7 +184,8 @@ class ChoroplethMap:
             colors = self.colors_up
         else:
             colors = self.colors_down
-        for i, (left, right) in enumerate(zip(THRESH_MARGIN, THRESH_MARGIN[1:])):
+        for i, (left, right) in enumerate(zip(THRESH_MARGIN,
+                                              THRESH_MARGIN[1:])):
             if left < abs(value) <= right:
                 return colors[i]        
         
@@ -252,6 +253,8 @@ class GraphData:
                  rectangle_y_coords: list[float],
                  rectangle_x_margin: float,
                  rectangle_y_margin: float,
+                 circle_point: list[float],
+                 circle_radii: list[float],
                  horizontal_text: list[str],
                  horizontal_text_point: list[float],
                  horizontal_text_size: float,
@@ -278,6 +281,14 @@ class GraphData:
             the rectangles.
             rectangle_y_margin (float): the vertical margin between
             the rectangles.
+            circle_point (list[float]): the coordinates of the center
+            of the circle.
+            circle_radii (list[float]): a list of radii for the circle.
+            Four radii are required:
+                1) The one for the turnout.
+                2) The one for the border between the turnout and the results.
+                3) The one for the results.
+                4) The one for the hole in the results.
             horizontal_text (list[str]): the text values of the
             horizontal text entries.
             horizontal_text_point (list[float]): the coordinates of the
@@ -317,6 +328,10 @@ class GraphData:
         self.rectangle_y_coords += [self.rectangle_y_coords[-1]]
         self.rectangle_x_margin = rectangle_x_margin
         self.rectangle_y_margin = rectangle_y_margin
+        self.circle_point = circle_point
+        if len(circle_radii) != 4:
+            raise ValueError("circle_radii should contain precisely 4 values")
+        self.circle_radii = circle_radii
         self.horizontal_text_point = horizontal_text_point
         self.horizontal_text = horizontal_text
         self.horizontal_text_size = horizontal_text_size
@@ -444,13 +459,18 @@ class GraphData:
         segment0 = self.turnout/100*360
         segment1 = self.result1/100*360
         segment2 = self.result2/100*360+segment1
-        point = [75, 425]
-        self._add_circle(point, 66, 0, segment0, 50, False, COLOR_OTHER)
-        self._add_circle(point, 63, 0, 360, 50, False, "white")
-        self._add_circle(point, 60, 0, segment1, 50, False, self.palette1[1])
-        self._add_circle(point, 60, segment1, segment2, 50, False, self.palette2[1])
-        self._add_circle(point, 60, segment2, 360, 50, False, COLOR_OTHER)
-        self._add_circle(point, 30, 0, 360, 50, False, "white")
+        self._add_circle(self.circle_point, self.circle_radii[0],
+                         0, segment0, 50, False, COLOR_OTHER)
+        self._add_circle(self.circle_point, self.circle_radii[1],
+                         0, 360, 50, False, "white")
+        self._add_circle(self.circle_point, self.circle_radii[2],
+                         0, segment1, 50, False, self.palette1[1])
+        self._add_circle(self.circle_point, self.circle_radii[2],
+                         segment1, segment2, 50, False, self.palette2[1])
+        self._add_circle(self.circle_point, self.circle_radii[2],
+                         segment2, 360, 50, False, COLOR_OTHER)
+        self._add_circle(self.circle_point, self.circle_radii[3],
+                         0, 360, 50, False, "white")
 
 
     def _add_text(self,
@@ -496,7 +516,8 @@ def main() -> None:
     text = [f">{i}%" for i in range(40, 100, 10)][::-1]
     data = GraphData(COLORS_R_PRES, COLORS_D_PRES, 56.92, 40.55, 73.10,
                      [195, 195, 240, 240], [170, 195, 195, 170],
-                     5, 10, text, [0, 0], 1, ["D", "R"], [0, 0], 1,
+                     5, 10, [80, 300], [66, 63, 60, 30],
+                     text, [169, 183.5], 13, ["D", "R"], [0, 0], 1,
                      300, 500, "test-new-circle-big.svg")
                            
 
