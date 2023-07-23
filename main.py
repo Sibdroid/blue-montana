@@ -495,10 +495,9 @@ def main() -> None:
 def main() -> None:
     text = [f">{i}%" for i in range(40, 100, 10)][::-1]
     data = GraphData(COLORS_R_PRES, COLORS_D_PRES, 56.92, 40.55, 73.10,
-                     [50, 50, 95, 95], [105, 130, 130, 105],
-                     5, 10, text, [24, 118.5], 13,
-                     ["R", "D"], [75, 320], 16, 150, 500,
-                     "test-new-circle.svg")
+                     [195, 195, 240, 240], [170, 195, 195, 170],
+                     5, 10, text, [0, 0], 1, ["D", "R"], [0, 0], 1,
+                     300, 500, "test-new-circle-big.svg")
                            
 
 if __name__ == "__main__":
