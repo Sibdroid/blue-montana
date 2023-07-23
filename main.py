@@ -507,15 +507,15 @@ class GraphData:
     def _add_text(self,
                   point: list[float, float],
                   text: str,
-                  size: float) -> None:
+                  size: float,
+                  color: str="black") -> None:
         self.figure.add_annotation(x=point[0], y=point[1], text=text,
                                    showarrow=False, ax=0, ay=0,
-                                   font=dict(size=size))
+                                   font=dict(size=size, color=color))
 
     def add_text(self):
         point = self.horizontal_text_point
         for text in self.horizontal_text:
-            print(point)
             self._add_text(point, text, self.horizontal_text_size)
             point[1] += self.rectangle_height+self.rectangle_y_margin
         self._add_text(self.vertical_text_point1, self.vertical_text[0],
@@ -523,6 +523,9 @@ class GraphData:
         self._add_text(self.vertical_text_point2, self.vertical_text[1],
                        self.vertical_text_size)
         self._add_text(self.circle_point, f"{self.turnout}%", 14)
+        # candidates
+        self._add_text([125, 465], f"Donald Trump (R): {self.result1}%",
+                       16, "#393E41")
 
 
     def save(self) -> None:
