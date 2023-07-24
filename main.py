@@ -590,8 +590,8 @@ def main() -> None:
                      vertical_text_point1=[217.5, 160],
                      vertical_text_point2=[265, 160],
                      vertical_text_size=13,
-                     result_text_point=[260, 410],
-                     result_text_size=14,
+                     result_text_point=[250, 410],
+                     result_text_size=20,
                      width=300,
                      height=500,
                      name="test-new-circle-big.svg")
