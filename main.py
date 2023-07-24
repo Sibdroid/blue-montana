@@ -531,10 +531,20 @@ class GraphData:
                        self.vertical_text_size)
         self._add_text(self.circle_point, f"{self.turnout}%", 14)
         # candidates
-        self._add_text(self.result_text_point, f"{self.result2}%", 14)
+        self._add_text(self.result_text_point, f"{self.result2}%",
+                       self.result_text_size)
         self.result_text_point[1] += (self.major_rectangle_height
                                       +self.major_rectangle_y_margin)
-        self._add_text(self.result_text_point, f"{self.result1}%", 14)
+        self._add_text(self.result_text_point, f"{self.result1}%",
+                       self.result_text_size)
+        self._add_text([100, 410+55], "Trump/Pence (R)", 20)
+        self._add_text([98, 410], "Biden/Harris (D)", 20)
+
+
+    def add_lines(self):
+        for x in self.vertical_dash_lines:
+            self.figure.add_vline(x=x, opacity=1, line_width=1,
+                                  line_dash="dash", line_color="black")
 
 
     def save(self) -> None:
