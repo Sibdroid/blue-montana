@@ -264,6 +264,8 @@ class GraphData:
                  vertical_text_point1: list[float],
                  vertical_text_point2: list[float],
                  vertical_text_size: float,
+                 result_text_point: list[float],
+                 result_text_size: float,
                  width: float,
                  height: float,
                  name: str,
@@ -310,6 +312,9 @@ class GraphData:
             right vertical text entry.
             vertical_text_size (float): the size of the vertical
             text entries.
+            result_text_point (list[float]): the coordinate of the
+            bottom-left result text.
+            result_text_size (float): the size of the result text.
             width (float): the width of the image.
             height (float): the height of the image.
             name (str): the name of the image.
@@ -353,6 +358,8 @@ class GraphData:
         self.vertical_text_point2 = vertical_text_point2
         self.vertical_text = vertical_text
         self.vertical_text_size = vertical_text_size
+        self.result_text_point = result_text_point
+        self.result_text_size = result_text_size
         self.width = width
         self.height = height
         self.name = name
@@ -524,8 +531,10 @@ class GraphData:
                        self.vertical_text_size)
         self._add_text(self.circle_point, f"{self.turnout}%", 14)
         # candidates
-        self._add_text([125, 465], f"Donald Trump (R): {self.result1}%",
-                       16, "#393E41")
+        self._add_text(self.result_text_point, f"{self.result2}%", 14)
+        self.result_text_point[1] += (self.major_rectangle_height
+                                      +self.major_rectangle_y_margin)
+        self._add_text(self.result_text_point, f"{self.result1}%", 14)
 
 
     def save(self) -> None:
@@ -552,9 +561,9 @@ def main() -> None:
     text = [f">{i}%" for i in range(40, 100, 10)][::-1]
     data = GraphData(palette1=COLORS_R_PRES,
                      palette2=COLORS_D_PRES,
-                     result1=56.92,
-                     result2=40.55,
-                     turnout=73.10,
+                     result1=56.9,
+                     result2=40.5,
+                     turnout=73.1,
                      major_rectangle_x_coords=[10, 10, 290, 290],
                      major_rectangle_y_coords=[385, 435, 435, 385],
                      major_rectangle_y_margin=5,
@@ -571,6 +580,8 @@ def main() -> None:
                      vertical_text_point1=[217.5, 160],
                      vertical_text_point2=[265, 160],
                      vertical_text_size=13,
+                     result_text_point=[260, 410],
+                     result_text_size=14,
                      width=300,
                      height=500,
                      name="test-new-circle-big.svg")
