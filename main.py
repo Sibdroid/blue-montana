@@ -266,6 +266,11 @@ class GraphData:
                  vertical_text_size: float,
                  result_text_point: list[float],
                  result_text_size: float,
+                 candidate_text1: str,
+                 candidate_text2: str,
+                 candidate_text_point1: list[float],
+                 candidate_text_point2: list[float],
+                 candidate_text_size: float,
                  width: float,
                  height: float,
                  name: str,
@@ -360,6 +365,11 @@ class GraphData:
         self.vertical_text_size = vertical_text_size
         self.result_text_point = result_text_point
         self.result_text_size = result_text_size
+        self.candidate_text1 = candidate_text1
+        self.candidate_text2 = candidate_text2
+        self.candidate_text_point1 = candidate_text_point1
+        self.candidate_text_point2 = candidate_text_point2
+        self.candidate_text_size = candidate_text_size
         self.width = width
         self.height = height
         self.name = name
@@ -537,8 +547,10 @@ class GraphData:
                                       +self.major_rectangle_y_margin)
         self._add_text(self.result_text_point, f"{self.result1}%",
                        self.result_text_size)
-        self._add_text([100, 410+55], "Trump/Pence (R)", 20)
-        self._add_text([98, 410], "Biden/Harris (D)", 20)
+        self._add_text(self.candidate_text_point1, self.candidate_text1,
+                       self.candidate_text_size)
+        self._add_text(self.candidate_text_point2, self.candidate_text2,
+                       self.candidate_text_size)
 
 
     def add_lines(self):
@@ -552,6 +564,23 @@ class GraphData:
         self.figure.write_image(self.name, width=self.width,
                                 height=self.height)
 
+class ResultCircle:
+
+    def __init__(self,
+                 results: list[float],
+                 colors: list[str],
+                 turnout: float,
+                 circle_point: list[float],
+                 radii: list[float],
+                 turnout_text_point: list[float],
+                 turnout_text_size: float) -> None:
+        self.results = results
+        self.colors = colors
+        self.turnout = turnout
+        self.circle_point = circle_point
+        self.radii = radii
+        self.turnout_text_point = turnout_text_point
+        self.turnout_text_size = turnout_text_size
 
 
 def main() -> None:
@@ -592,6 +621,11 @@ def main() -> None:
                      vertical_text_size=13,
                      result_text_point=[250, 410],
                      result_text_size=20,
+                     candidate_text1="Trump/Pence (R)",
+                     candidate_text2="Biden/Harris (D)",
+                     candidate_text_point1=[100, 465],
+                     candidate_text_point2=[98, 410],
+                     candidate_text_size=20,
                      width=300,
                      height=500,
                      name="test-new-circle-big.svg")
