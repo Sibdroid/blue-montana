@@ -238,6 +238,16 @@ class ChoroplethMap:
         standard_map = self.draw_map().write_image(self.name)
         edit_viewbox(self.name, self.boundaries)
 
+
+def add_text(figure: go.Figure,
+             point: list[float, float],
+             text: str,
+             size: float,
+             color: str="black") -> None:
+    figure.add_annotation(x=point[0], y=point[1], text=text,
+                          showarrow=False, ax=0, ay=0,
+                          font=dict(size=size, color=color))
+
 class ResultCircle:
 
     def __init__(self,
@@ -260,6 +270,7 @@ class ResultCircle:
         self.figure = figure
         if draw_instantly:
             self.add_circles()
+            self.add_text()
 
 
     def _add_circle(self,
@@ -328,6 +339,10 @@ class ResultCircle:
         self._add_circle(self.circle_point, self.radii[3], 0, 360,
                          50, False, "white")
 
+    def add_text(self) -> None:
+        add_text(self.figure, self.circle_point,
+                 f"{self.turnout}%", self.turnout_text_size)
+
 
 
 def main() -> None:
@@ -360,7 +375,7 @@ def main() -> None:
                            turnout=55.0,
                            circle_point=[80, 305],
                            radii=[66, 63, 60, 30],
-                           turnout_text_size=20,
+                           turnout_text_size=15,
                            figure=figure)
     figure.write_image("test-from-scratch.svg", width=300, height=500)
 
