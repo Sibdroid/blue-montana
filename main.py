@@ -248,6 +248,17 @@ def add_text(figure: go.Figure,
                           showarrow=False, ax=0, ay=0,
                           font=dict(size=size, color=color))
 
+
+def add_rectangle(figure: go.Figure,
+                  x_coords: list[float],
+                  y_coords: list[float],
+                  color: str) -> None:
+    x_coords += [x_coords[-1]]
+    y_coords += [y_coords[-1]]
+    figure.add_trace(go.Scatter(x=x_coords, y=y_coords, fill="toself",
+                                fillcolor=color,
+                                opacity=1, mode="none"))
+
 class ResultCircle:
 
     def __init__(self,
@@ -344,6 +355,53 @@ class ResultCircle:
                  f"{self.turnout}%", self.turnout_text_size)
 
 
+class Legend:
+
+
+    def __init__(self,
+                 palettes: list[list[str]],
+                 palette_x_coordinates: list[float],
+                 palette_y_coordinates: list[float],
+                 palette_x_margin: float,
+                 palette_y_margin: float,
+                 horizontal_text: list[str],
+                 horizontal_text_start_position: list[float],
+                 horizontal_text_size: float,
+                 figure: go.Figure,
+                 draw_instantly: bool=True) -> None:
+        if len(set([len(i) for i in palettes])) != 1:
+            raise ValueError("The palettes should all be the same length")
+        self.palettes = palettes
+        self.palette_x_coordinates = palette_x_coordinates
+        self.palette_y_coordinates = palette_y_coordinates
+        self.palette_x_margin = palette_x_margin
+        self.palette_y_margin = palette_y_margin
+        self.horizontal_text = horizontal_text
+        self.horizontal_text_start_position = horizontal_text_start_position
+        self.horizontal_text_size = horizontal_text_size
+        self.palette_width = (self.palette_x_coordinates[2]
+                               -self.palette_x_coordinates[0])
+        self.palette_height = (self.palette_y_coordinates[1]
+                               -self.palette_y_coordinates[0])
+        self.figure = figure
+        if draw_instantly:
+            self.draw_palette()
+
+
+    def draw_palette(self):
+        x_coords = self.palette_x_coordinates
+        y_coords = self.palette_y_coordinates
+        for palette in self.palettes:
+            for color in palette[::-1]:
+                add_rectangle(self.figure, x_coords, y_coords, color)
+                y_coords = [y+self.palette_height+self.palette_y_margin
+                            for y in y_coords]
+            y_coords = self.palette_y_coordinates
+            x_coords = [x+self.palette_width+self.palette_x_margin
+                        for x in x_coords]
+
+
+
 
 def main() -> None:
     pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
@@ -369,7 +427,7 @@ def main() -> None:
     figure.update_yaxes(visible=False, showticklabels=False,
                         scaleanchor="x", scaleratio=1)
     circles = ResultCircle(results=[45.4, 39.4, 9.1],
-                           colors=[COLORS_D_DOWN[1], COLORS_R_DOWN[1],
+                           colors=[COLORS_D_PRES[1], COLORS_R_PRES[1],
                                    COLORS_I_DOWN[1]],
                            color_other=COLOR_OTHER,
                            turnout=55.0,
@@ -377,7 +435,17 @@ def main() -> None:
                            radii=[66, 63, 60, 30],
                            turnout_text_size=15,
                            figure=figure)
+    legend = Legend(palettes=[COLORS_D_PRES, COLORS_R_PRES],
+                    palette_x_coordinates=[195, 195, 240, 240],
+                    palette_y_coordinates=[175, 200, 200, 175],
+                    palette_x_margin=5,
+                    palette_y_margin=10,
+                    horizontal_text=["hey", "hey"],
+                    horizontal_text_start_position=[0, 0],
+                    horizontal_text_size=0,
+                    figure=figure)
     figure.write_image("test-from-scratch.svg", width=300, height=500)
+
 
 if __name__ == "__main__":
     main()
