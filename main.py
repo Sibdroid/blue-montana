@@ -238,215 +238,29 @@ class ChoroplethMap:
         standard_map = self.draw_map().write_image(self.name)
         edit_viewbox(self.name, self.boundaries)
 
-
-class GraphData:
-
+class ResultCircle:
 
     def __init__(self,
-                 palette1: list[str],
-                 palette2: list[str],
-                 result1: float,
-                 result2: float,
+                 results: list[float],
+                 colors: list[str],
+                 color_other: str,
                  turnout: float,
-                 major_rectangle_x_coords: list[float],
-                 major_rectangle_y_coords: list[float],
-                 major_rectangle_y_margin: float,
-                 rectangle_x_coords: list[float],
-                 rectangle_y_coords: list[float],
-                 rectangle_x_margin: float,
-                 rectangle_y_margin: float,
                  circle_point: list[float],
-                 circle_radii: list[float],
-                 horizontal_text: list[str],
-                 horizontal_text_point: list[float],
-                 horizontal_text_size: float,
-                 vertical_text: list[str],
-                 vertical_text_point1: list[float],
-                 vertical_text_point2: list[float],
-                 vertical_text_size: float,
-                 result_text_point: list[float],
-                 result_text_size: float,
-                 candidate_text1: str,
-                 candidate_text2: str,
-                 candidate_text_point1: list[float],
-                 candidate_text_point2: list[float],
-                 candidate_text_size: float,
-                 width: float,
-                 height: float,
-                 name: str,
+                 radii: list[float],
+                 turnout_text_size: float,
+                 figure: go.Figure,
                  draw_instantly: bool=True) -> None:
-        """Initializes an instance of GraphData class.
-
-        Args:
-            palette1 (list[str]): the first set of colors.
-            palette2 (list[str]): the second set of colors.
-            result1 (float): the result of the first candidate.
-            result2 (float): the result of the second candidate.
-            turnout (float): the turnout.
-            major_rectangle_x_coords (list[float): the 'x' coordinates
-            of the bottom major rectangle.
-            major_rectangle_x_coords (list[float): the 'y' coordinates
-            of the bottom major rectangle.
-            major_rectangle_y_margin (float): the vertical margin
-            between the major rectangles.
-            rectangle_x_coords (list[float]): the 'x' coordinates
-            of the bottom-left rectangle.
-            rectangle_y_coords (list[float]): the 'y' coordinates
-            of the bottom-left rectangle.
-            rectangle_y_margin (float): the vertical margin between
-            the rectangles.
-            circle_point (list[float]): the coordinates of the center
-            of the circle.
-            circle_radii (list[float]): a list of radii for the circle.
-            Four radii are required:
-                1) The one for the turnout.
-                2) The one for the border between the turnout and the results.
-                3) The one for the results.
-                4) The one for the hole in the results.
-            horizontal_text (list[str]): the text values of the
-            horizontal text entries.
-            horizontal_text_point (list[float]): the coordinates of the
-            bottom-left horizontal text entry.
-            horizontal_text_size (float): the size of the horizontal
-            text entries.
-            vertical_text (list[str]): the text values of the
-            vertical text entries.
-            vertical_text_point1 (list[float]): the coordinates of the
-            left vertical text entry.
-            vertical_text_point2 (list[float]): the coordinates of the
-            right vertical text entry.
-            vertical_text_size (float): the size of the vertical
-            text entries.
-            result_text_point (list[float]): the coordinate of the
-            bottom-left result text.
-            result_text_size (float): the size of the result text.
-            width (float): the width of the image.
-            height (float): the height of the image.
-            name (str): the name of the image.
-            Strongly advised to be <name>.svg.
-            draw_instantly (bool): whether to draw the map when initialized.
-            Defaults to True.
-
-        Raises:
-            A ValueError if palettes have different lengths.
-            A ValueError if the sum of results is greater than 100."""
-        if len(palette1) != len(palette2):
-            raise ValueError("The palettes should have the same length")
-        self.palette1 = palette1
-        self.palette2 = palette2
-        if result1+result2 > 100:
-            raise ValueError("The sum of results cannot not be more than 100")
-        self.result1 = result1
-        self.result2 = result2
-        if turnout > 100:
-            raise ValueError("The turnout cannot be more than 100")
+        self.results = results
+        self.colors = colors
+        self.color_other = color_other
         self.turnout = turnout
-        self.major_rectangle_x_coords = major_rectangle_x_coords
-        self.major_rectangle_y_coords = major_rectangle_y_coords
-        self.major_rectangle_x_coords += [self.major_rectangle_x_coords[-1]]
-        self.major_rectangle_y_coords += [self.major_rectangle_y_coords[-1]]
-        self.major_rectangle_y_margin = major_rectangle_y_margin
-        self.rectangle_x_coords = rectangle_x_coords
-        self.rectangle_y_coords = rectangle_y_coords
-        self.rectangle_x_coords += [self.rectangle_x_coords[-1]]
-        self.rectangle_y_coords += [self.rectangle_y_coords[-1]]
-        self.rectangle_x_margin = rectangle_x_margin
-        self.rectangle_y_margin = rectangle_y_margin
         self.circle_point = circle_point
-        if len(circle_radii) != 4:
-            raise ValueError("circle_radii should contain precisely 4 values")
-        self.circle_radii = circle_radii
-        self.horizontal_text_point = horizontal_text_point
-        self.horizontal_text = horizontal_text
-        self.horizontal_text_size = horizontal_text_size
-        self.vertical_text_point1 = vertical_text_point1
-        self.vertical_text_point2 = vertical_text_point2
-        self.vertical_text = vertical_text
-        self.vertical_text_size = vertical_text_size
-        self.result_text_point = result_text_point
-        self.result_text_size = result_text_size
-        self.candidate_text1 = candidate_text1
-        self.candidate_text2 = candidate_text2
-        self.candidate_text_point1 = candidate_text_point1
-        self.candidate_text_point2 = candidate_text_point2
-        self.candidate_text_size = candidate_text_size
-        self.width = width
-        self.height = height
-        self.name = name
-        self.draw_instantly = draw_instantly
-        self.major_rectangle_width = (self.major_rectangle_x_coords[2]
-                                      -self.major_rectangle_x_coords[0])
-        self.major_rectangle_height = (self.major_rectangle_y_coords[2]
-                                       -self.major_rectangle_y_coords[0])
-        self.rectangle_width = (self.rectangle_x_coords[2]
-                                -self.rectangle_x_coords[0])
-        self.rectangle_height = (self.rectangle_y_coords[2]
-                                 -self.rectangle_y_coords[0])
-        if self.draw_instantly:
-            self.create_figure()
-            self.add_major_rectangle()
-            self.add_rectangles()
-            self.add_circle()
-            self.add_text()
-            self.save()
+        self.radii = radii
+        self.turnout_text_size = turnout_text_size
+        self.figure = figure
+        if draw_instantly:
+            self.add_circles()
 
-
-    def create_figure(self):
-        """Creates an empty figure with white background and hidden axis."""
-        self.figure = go.Figure()
-        self.figure.update_layout(template='simple_white',
-                                  xaxis_range=[0, self.width],
-                                  yaxis_range=[0, self.height],
-                                  margin=dict(l=0, r=0, t=0, b=0),
-                                  showlegend=False)
-        self.figure.update_xaxes(visible=False, showticklabels=False)
-        self.figure.update_yaxes(visible=False, showticklabels=False,
-                                 scaleanchor="x", scaleratio=1)
-
-
-    def _add_rectangle(self,
-                       x_coords: list[float],
-                       y_coords: list[float],
-                       color: str) -> None:
-         """Adds a rectangle to the figure.
-
-         Args:
-             x_coords (list[float]): the 'x' coordinates of a rectangle.
-             y_coords (list[float): the 'y' coordinates of a rectangle.
-             color (str): the color.
-
-         Example(s):
-             >>> self._add_rectangle([2, 2, 6, 6], [1, 3, 3, 1], "red")
-             # Adds a red rectangle with the following points:
-             # (2, 1), (2, 3), (6, 3), (6, 1).
-         """
-         self.figure.add_trace(go.Scatter(x=x_coords, y=y_coords, fill="toself",
-                                          fillcolor=color,
-                                          opacity=1, mode="none"))
-
-    def add_major_rectangle(self):
-        """Adds two major rectangles to the figure, one for each
-        candidate."""
-        x_coords = self.major_rectangle_x_coords
-        y_coords = self.major_rectangle_y_coords
-        self._add_rectangle(x_coords, y_coords, self.palette2[1])
-        y_coords = [i+self.major_rectangle_height+self.major_rectangle_y_margin
-                    for i in y_coords]
-        self._add_rectangle(x_coords, y_coords, self.palette1[1])
-
-
-    def add_rectangles(self) -> None:
-        """Adds an N*2 set of rectangles to the figure,
-        where N is the amount of colors given in palette1 and palette2."""
-        x_coords = self.rectangle_x_coords
-        other_x_coords = [i+self.rectangle_width+self.rectangle_x_margin
-                          for i in x_coords]
-        y_coords = self.rectangle_y_coords
-        for color1, color2 in zip(self.palette1[::-1], self.palette2[::-1]):
-            self._add_rectangle(x_coords, y_coords, color1)
-            self._add_rectangle(other_x_coords, y_coords, color2)
-            y_coords = [i+self.rectangle_height+self.rectangle_y_margin
-                        for i in y_coords]
 
     def _add_circle(self,
                     center: list[float, float],
@@ -496,91 +310,24 @@ class GraphData:
                               fillcolor=color,
                               opacity=1)
 
-
-    def add_circle(self) -> None:
-        """Adds the main circle with results to the figure.
-        The circle consists of three partS: the sector for the
-        result1, the sector for the result2, and the sector for
-        other results, calculated as 100-result1-result2.
-        If result1 and result2 combine for 100, there is no third sector.
-        """
-        segment0 = self.turnout/100*360
-        segment1 = self.result1/100*360
-        segment2 = self.result2/100*360+segment1
-        self._add_circle(self.circle_point, self.circle_radii[0],
-                         0, segment0, 50, False, COLOR_OTHER)
-        self._add_circle(self.circle_point, self.circle_radii[1],
+    def add_circles(self) -> None:
+        turnout_segment = self.turnout/100*360
+        self._add_circle(self.circle_point, self.radii[0],
+                         0, turnout_segment, 50, False, self.color_other)
+        self._add_circle(self.circle_point, self.radii[1],
                          0, 360, 50, False, "white")
-        self._add_circle(self.circle_point, self.circle_radii[2],
-                         0, segment1, 50, False, self.palette1[1])
-        self._add_circle(self.circle_point, self.circle_radii[2],
-                         segment1, segment2, 50, False, self.palette2[1])
-        self._add_circle(self.circle_point, self.circle_radii[2],
-                         segment2, 360, 50, False, COLOR_OTHER)
-        self._add_circle(self.circle_point, self.circle_radii[3],
-                         0, 360, 50, False, "white")
+        start_segment = 0
+        end_segment = 0
+        for result, color in zip(self.results, self.colors):
+            end_segment += result/100*360
+            self._add_circle(self.circle_point, self.radii[2],
+                             start_segment, end_segment, 50, False, color)
+            start_segment = end_segment
+        self._add_circle(self.circle_point, self.radii[2], end_segment, 360,
+                         50, False, self.color_other)
+        self._add_circle(self.circle_point, self.radii[3], 0, 360,
+                         50, False, "white")
 
-
-    def _add_text(self,
-                  point: list[float, float],
-                  text: str,
-                  size: float,
-                  color: str="black") -> None:
-        self.figure.add_annotation(x=point[0], y=point[1], text=text,
-                                   showarrow=False, ax=0, ay=0,
-                                   font=dict(size=size, color=color))
-
-    def add_text(self):
-        point = self.horizontal_text_point
-        for text in self.horizontal_text:
-            self._add_text(point, text, self.horizontal_text_size)
-            point[1] += self.rectangle_height+self.rectangle_y_margin
-        self._add_text(self.vertical_text_point1, self.vertical_text[0],
-                       self.vertical_text_size)
-        self._add_text(self.vertical_text_point2, self.vertical_text[1],
-                       self.vertical_text_size)
-        self._add_text(self.circle_point, f"{self.turnout}%", 14)
-        # candidates
-        self._add_text(self.result_text_point, f"{self.result2}%",
-                       self.result_text_size)
-        self.result_text_point[1] += (self.major_rectangle_height
-                                      +self.major_rectangle_y_margin)
-        self._add_text(self.result_text_point, f"{self.result1}%",
-                       self.result_text_size)
-        self._add_text(self.candidate_text_point1, self.candidate_text1,
-                       self.candidate_text_size)
-        self._add_text(self.candidate_text_point2, self.candidate_text2,
-                       self.candidate_text_size)
-
-
-    def add_lines(self):
-        for x in self.vertical_dash_lines:
-            self.figure.add_vline(x=x, opacity=1, line_width=1,
-                                  line_dash="dash", line_color="black")
-
-
-    def save(self) -> None:
-        """Saves the figure."""
-        self.figure.write_image(self.name, width=self.width,
-                                height=self.height)
-
-class ResultCircle:
-
-    def __init__(self,
-                 results: list[float],
-                 colors: list[str],
-                 turnout: float,
-                 circle_point: list[float],
-                 radii: list[float],
-                 turnout_text_point: list[float],
-                 turnout_text_size: float) -> None:
-        self.results = results
-        self.colors = colors
-        self.turnout = turnout
-        self.circle_point = circle_point
-        self.radii = radii
-        self.turnout_text_point = turnout_text_point
-        self.turnout_text_size = turnout_text_size
 
 
 def main() -> None:
@@ -597,39 +344,25 @@ def main() -> None:
 
 
 def main() -> None:
-    text = [f">{i}%" for i in range(40, 100, 10)][::-1]
-    data = GraphData(palette1=COLORS_R_PRES,
-                     palette2=COLORS_D_PRES,
-                     result1=56.9,
-                     result2=40.5,
-                     turnout=73.1,
-                     major_rectangle_x_coords=[10, 10, 290, 290],
-                     major_rectangle_y_coords=[385, 435, 435, 385],
-                     major_rectangle_y_margin=5,
-                     rectangle_x_coords=[195, 195, 240, 240],
-                     rectangle_y_coords=[175, 200, 200, 175],
-                     rectangle_x_margin=5,
-                     rectangle_y_margin=10,
-                     circle_point=[80, 305],
-                     circle_radii=[66, 63, 60, 30],
-                     horizontal_text=text,
-                     horizontal_text_point=[169, 188.5],
-                     horizontal_text_size=13,
-                     vertical_text=["R", "D"],
-                     vertical_text_point1=[217.5, 160],
-                     vertical_text_point2=[265, 160],
-                     vertical_text_size=13,
-                     result_text_point=[250, 410],
-                     result_text_size=20,
-                     candidate_text1="Trump/Pence (R)",
-                     candidate_text2="Biden/Harris (D)",
-                     candidate_text_point1=[100, 465],
-                     candidate_text_point2=[98, 410],
-                     candidate_text_size=20,
-                     width=300,
-                     height=500,
-                     name="test-new-circle-big.svg")
-                           
+    figure = go.Figure()
+    figure.update_layout(template='simple_white',
+                         xaxis_range=[0, 300],
+                         yaxis_range=[0, 500],
+                         margin=dict(l=0, r=0, t=0, b=0),
+                         showlegend=False)
+    figure.update_xaxes(visible=False, showticklabels=False)
+    figure.update_yaxes(visible=False, showticklabels=False,
+                        scaleanchor="x", scaleratio=1)
+    circles = ResultCircle(results=[45.4, 39.4, 9.1],
+                           colors=[COLORS_D_DOWN[1], COLORS_R_DOWN[1],
+                                   COLORS_I_DOWN[1]],
+                           color_other=COLOR_OTHER,
+                           turnout=55.0,
+                           circle_point=[80, 305],
+                           radii=[66, 63, 60, 30],
+                           turnout_text_size=20,
+                           figure=figure)
+    figure.write_image("test-from-scratch.svg", width=300, height=500)
 
 if __name__ == "__main__":
     main()
