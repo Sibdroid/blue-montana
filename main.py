@@ -367,8 +367,11 @@ class Legend:
                  palette_x_margin: float,
                  palette_y_margin: float,
                  horizontal_text: list[str],
-                 horizontal_text_start_position: list[float],
+                 horizontal_text_positions: list[list[float]],
                  horizontal_text_size: float,
+                 vertical_text: list[str],
+                 vertical_text_position: list[float],
+                 vertical_text_size: float,
                  figure: go.Figure,
                  draw_instantly: bool=True) -> None:
         if len(set([len(i) for i in palettes])) != 1:
@@ -381,12 +384,16 @@ class Legend:
         self.palette_x_margin = palette_x_margin
         self.palette_y_margin = palette_y_margin
         self.horizontal_text = horizontal_text
-        self.horizontal_text_start_position = horizontal_text_start_position
+        self.horizontal_text_positions = horizontal_text_positions
         self.horizontal_text_size = horizontal_text_size
+        self.vertical_text = vertical_text
+        self.vertical_text_position = vertical_text_position
+        self.vertical_text_size = vertical_text_size
         self.figure = figure
         if draw_instantly:
             self.calculate_points()
             self.draw_palette()
+            self.add_text()
 
 
     def calculate_points(self):
@@ -402,23 +409,32 @@ class Legend:
         self.x_coordinates[2] += point_x; self.x_coordinates[3] += point_x
         self.y_coordinates = [self.total_y_borders[0]+self.border_y_margin]*4
         self.y_coordinates[1] += point_y; self.y_coordinates[2] += point_y
+        self.palette_width = self.x_coordinates[2]-self.x_coordinates[0]
+        self.palette_height = self.y_coordinates[1]-self.y_coordinates[0]
 
 
 
     def draw_palette(self):
         x_coords = self.x_coordinates
         y_coords = self.y_coordinates
-        palette_width = x_coords[2]-x_coords[0]
-        palette_height = y_coords[1]-y_coords[0]
         for palette in self.palettes:
             for color in palette[::-1]:
                 add_rectangle(self.figure, x_coords, y_coords, color)
-                y_coords = [y+palette_height+self.palette_y_margin
+                y_coords = [y+self.palette_height+self.palette_y_margin
                             for y in y_coords]
             y_coords = self.y_coordinates
-            x_coords = [x+palette_width+self.palette_x_margin
+            x_coords = [x+self.palette_width+self.palette_x_margin
                         for x in x_coords]
 
+
+    def add_text(self):
+        for position, text in zip(self.horizontal_text_positions,
+                                  self.horizontal_text):
+            add_text(self.figure, position, text, self.horizontal_text_size)
+        position = self.vertical_text_position
+        for text in self.vertical_text:
+            add_text(self.figure, position, text, self.vertical_text_size)
+            position[1] += self.palette_height+self.palette_y_margin
 
 
 
@@ -460,9 +476,12 @@ def main() -> None:
                     border_y_margin=5,
                     palette_x_margin=5,
                     palette_y_margin=10,
-                    horizontal_text=["hey", "hey"],
-                    horizontal_text_start_position=[0, 0],
+                    horizontal_text=["R", "D"],
+                    horizontal_text_positions=[[217.5, 160], [265, 160]],
                     horizontal_text_size=13,
+                    vertical_text=[f">{i}%" for i in range(40, 100, 10)][::-1],
+                    vertical_text_position=[169, 188.5],
+                    vertical_text_size=13,
                     figure=figure)
     figure.write_image("test-from-scratch.svg", width=300, height=500)
 
