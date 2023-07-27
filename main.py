@@ -6,6 +6,7 @@ import json
 import os
 from decimal import Decimal
 from math import pi
+
 COLORS_D_PRES = ["#B9D7FF", "#86B6F2", "#4389E3",
                  "#1666CB", "#0645B4", "#002B84"]
 COLORS_R_PRES = ["#F2B3BE", "#E27F90", "#CC2F4A",
@@ -112,11 +113,10 @@ def deg_to_rad(degrees: float) -> float:
         >>> deg_to_rad(135)
         2.356194490192345
     """
-    return degrees*pi/180
+    return degrees * pi / 180
 
 
 class ChoroplethMap:
-
 
     def __init__(self,
                  data: str,
@@ -126,7 +126,7 @@ class ChoroplethMap:
                  colors_down: list[str],
                  name: str,
                  boundaries: str,
-                 draw_instantly: bool=True) -> None:
+                 draw_instantly: bool = True) -> None:
         """Initializes an instance of ChoroplethMap class.
 
         Args:
@@ -134,7 +134,7 @@ class ChoroplethMap:
             Data consists of the following columns:
                 county (str): optional.
                 result (float, from -100 to 100): required.
-                id (str, five digits): required.     
+                id (str, five digits): required.
             geojson (str): the path to the file with GEOJSON data.
             projection (str): the projection of the map.
             'transverse mercator' advised.
@@ -145,8 +145,7 @@ class ChoroplethMap:
             four integers divided by spaces: for example, '130 130 440 240'.
             draw_instantly (bool): whether to draw the map when initialized.
             Defaults to True."""
-            
-                
+
         self.data = read_data(data, {"id": str})
         with open(geojson) as file:
             self.geojson = json.load(file)
@@ -160,7 +159,6 @@ class ChoroplethMap:
         self.add_colorscale()
         if draw_instantly:
             self.draw_standard_map()
-        
 
     def add_ids(self):
         """Adds plotly-readable ids to the features of the GEOJSON."""
@@ -168,7 +166,6 @@ class ChoroplethMap:
         for feature in features:
             feature["id"] = feature["properties"]["GEOID"]
         self.geojson["features"] = features
-
 
     def get_color(self,
                   value: float) -> str:
@@ -186,14 +183,12 @@ class ChoroplethMap:
         for i, (left, right) in enumerate(zip(THRESH_MARGIN,
                                               THRESH_MARGIN[1:])):
             if left < abs(value) <= right:
-                return colors[i]        
-        
+                return colors[i]
 
     def add_colors(self) -> None:
         """Adds colors to the data according to the result."""
         color = self.data["result"].apply(lambda x: self.get_color(x))
         self.data["color"] = color
-        
 
     def add_colorscale(self) -> None:
         """Adds a colorscale used to plot the data."""
@@ -213,7 +208,6 @@ class ChoroplethMap:
         values = sorted(values, key=lambda x: x[0])
         values[0][0] = 0
         self.colorscale = values
-        
 
     def draw_map(self) -> go.Figure():
         """Draws a choropleth map of the data based on the GEOJSON."""
@@ -232,7 +226,6 @@ class ChoroplethMap:
         fig.layout.plot_bgcolor = WHITE
         return fig
 
-
     def draw_standard_map(self) -> None:
         """Draws a standard map and updates its boundaries."""
         standard_map = self.draw_map().write_image(self.name)
@@ -243,7 +236,7 @@ def add_text(figure: go.Figure,
              point: list[float, float],
              text: str,
              size: float,
-             color: str="black") -> None:
+             color: str = "black") -> None:
     figure.add_annotation(x=point[0], y=point[1], text=text,
                           showarrow=False, ax=0, ay=0,
                           font=dict(size=size, color=color))
@@ -259,6 +252,7 @@ def add_rectangle(figure: go.Figure,
                                 fillcolor=color,
                                 opacity=1, mode="none"))
 
+
 class ResultCircle:
 
     def __init__(self,
@@ -270,7 +264,7 @@ class ResultCircle:
                  radii: list[float],
                  turnout_text_size: float,
                  figure: go.Figure,
-                 draw_instantly: bool=True) -> None:
+                 draw_instantly: bool = True) -> None:
         self.results = results
         self.colors = colors
         self.color_other = color_other
@@ -283,13 +277,12 @@ class ResultCircle:
             self.add_circles()
             self.add_text()
 
-
     def _add_circle(self,
                     center: list[float, float],
                     radius: float,
                     start_angle: float,
                     end_angle: float,
-                    n: float,
+                    n: int,
                     is_seg: bool,
                     color: str) -> None:
         """Adds a sector of a circle to the figure.
@@ -314,12 +307,12 @@ class ResultCircle:
             a circle with center at (3, -2) and a radius of 4.
         """
         start_angle = -start_angle
-        end_angle = 360-end_angle
-        start = deg_to_rad(start_angle+90)
-        end = deg_to_rad(end_angle+90-360)
+        end_angle = 360 - end_angle
+        start = deg_to_rad(start_angle + 90)
+        end = deg_to_rad(end_angle + 90 - 360)
         t = np.linspace(start, end, n)
-        x = center[0]+radius*np.cos(t)
-        y = center[1]+radius*np.sin(t)
+        x = center[0] + radius * np.cos(t)
+        y = center[1] + radius * np.sin(t)
         path = f"M {x[0]},{y[0]}"
         for xc, yc in zip(x[1:], y[1:]):
             path += f" L{xc},{yc}"
@@ -333,7 +326,7 @@ class ResultCircle:
                               opacity=1)
 
     def add_circles(self) -> None:
-        turnout_segment = self.turnout/100*360
+        turnout_segment = self.turnout / 100 * 360
         self._add_circle(self.circle_point, self.radii[0],
                          0, turnout_segment, 50, False, self.color_other)
         self._add_circle(self.circle_point, self.radii[1],
@@ -341,7 +334,7 @@ class ResultCircle:
         start_segment = 0
         end_segment = 0
         for result, color in zip(self.results, self.colors):
-            end_segment += result/100*360
+            end_segment += result / 100 * 360
             self._add_circle(self.circle_point, self.radii[2],
                              start_segment, end_segment, 50, False, color)
             start_segment = end_segment
@@ -356,7 +349,6 @@ class ResultCircle:
 
 
 class Legend:
-
 
     def __init__(self,
                  palettes: list[list[str]],
@@ -373,7 +365,7 @@ class Legend:
                  vertical_text_position: list[float],
                  vertical_text_size: float,
                  figure: go.Figure,
-                 draw_instantly: bool=True) -> None:
+                 draw_instantly: bool = True) -> None:
         if len(set([len(i) for i in palettes])) != 1:
             raise ValueError("The palettes should all be the same length")
         self.palettes = palettes
@@ -395,24 +387,25 @@ class Legend:
             self.draw_palette()
             self.add_text()
 
-
     def calculate_points(self):
-        point_x = (((self.total_x_borders[2]-self.total_x_borders[0])
-                    -2*self.border_x_margin
-                    -self.palette_x_margin*(len(self.palettes)-1))
-                    / len(self.palettes))
-        point_y = (((self.total_y_borders[1]-self.total_y_borders[0])
-                    -2*self.border_y_margin
-                    -self.palette_y_margin*(len(self.palettes[0])-1))
-                    / len(self.palettes[0]))
-        self.x_coordinates = [self.total_x_borders[0]+self.border_x_margin]*4
-        self.x_coordinates[2] += point_x; self.x_coordinates[3] += point_x
-        self.y_coordinates = [self.total_y_borders[0]+self.border_y_margin]*4
-        self.y_coordinates[1] += point_y; self.y_coordinates[2] += point_y
-        self.palette_width = self.x_coordinates[2]-self.x_coordinates[0]
-        self.palette_height = self.y_coordinates[1]-self.y_coordinates[0]
-
-
+        point_x = (((self.total_x_borders[2] - self.total_x_borders[0])
+                    - 2 * self.border_x_margin
+                    - self.palette_x_margin * (len(self.palettes) - 1))
+                   / len(self.palettes))
+        point_y = (((self.total_y_borders[1] - self.total_y_borders[0])
+                    - 2 * self.border_y_margin
+                    - self.palette_y_margin * (len(self.palettes[0]) - 1))
+                   / len(self.palettes[0]))
+        self.x_coordinates = [self.total_x_borders[
+                                  0] + self.border_x_margin] * 4
+        self.x_coordinates[2] += point_x
+        self.x_coordinates[3] += point_x
+        self.y_coordinates = [self.total_y_borders[
+                                  0] + self.border_y_margin] * 4
+        self.y_coordinates[1] += point_y
+        self.y_coordinates[2] += point_y
+        self.palette_width = self.x_coordinates[2] - self.x_coordinates[0]
+        self.palette_height = self.y_coordinates[1] - self.y_coordinates[0]
 
     def draw_palette(self):
         x_coords = self.x_coordinates
@@ -420,12 +413,11 @@ class Legend:
         for palette in self.palettes:
             for color in palette[::-1]:
                 add_rectangle(self.figure, x_coords, y_coords, color)
-                y_coords = [y+self.palette_height+self.palette_y_margin
+                y_coords = [y + self.palette_height + self.palette_y_margin
                             for y in y_coords]
             y_coords = self.y_coordinates
-            x_coords = [x+self.palette_width+self.palette_x_margin
+            x_coords = [x + self.palette_width + self.palette_x_margin
                         for x in x_coords]
-
 
     def add_text(self):
         for position, text in zip(self.horizontal_text_positions,
@@ -434,8 +426,26 @@ class Legend:
         position = self.vertical_text_position
         for text in self.vertical_text:
             add_text(self.figure, position, text, self.vertical_text_size)
-            position[1] += self.palette_height+self.palette_y_margin
+            position[1] += self.palette_height + self.palette_y_margin
 
+
+
+class CandidateBlocks:
+
+
+    def __init__(self,
+                 x_borders: list[float],
+                 y_borders: list[float],
+                 colors: list[str],
+                 candidate_text: list[str],
+                 candidate_text_positions: list[list[float]],
+                 candidate_text_size: float) -> None:
+        self.x_borders = x_borders
+        self.y_borders = y_borders
+        self.colors = colors
+        self.candidate_text = candidate_text
+        self.candidate_text_positions = candidate_text_positions
+        self.candidate_text_size = candidate_text_size
 
 
 def main() -> None:
@@ -445,10 +455,10 @@ def main() -> None:
                              "montana-presidential.svg",
                              "130 130 440 240")
     sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
-                             "transverse mercator",
-                             COLORS_I_DOWN, COLORS_R_DOWN,
-                             "montana-senate.svg",
-                             "130 130 440 240")
+                            "transverse mercator",
+                            COLORS_I_DOWN, COLORS_R_DOWN,
+                            "montana-senate.svg",
+                            "130 130 440 240")
 
 
 def main() -> None:
@@ -488,6 +498,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-
