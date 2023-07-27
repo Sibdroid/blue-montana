@@ -360,8 +360,10 @@ class Legend:
 
     def __init__(self,
                  palettes: list[list[str]],
-                 palette_x_coordinates: list[float],
-                 palette_y_coordinates: list[float],
+                 total_x_borders: list[float],
+                 total_y_borders: list[float],
+                 border_x_margin: float,
+                 border_y_margin: float,
                  palette_x_margin: float,
                  palette_y_margin: float,
                  horizontal_text: list[str],
@@ -372,32 +374,49 @@ class Legend:
         if len(set([len(i) for i in palettes])) != 1:
             raise ValueError("The palettes should all be the same length")
         self.palettes = palettes
-        self.palette_x_coordinates = palette_x_coordinates
-        self.palette_y_coordinates = palette_y_coordinates
+        self.total_x_borders = total_x_borders
+        self.total_y_borders = total_y_borders
+        self.border_x_margin = border_x_margin
+        self.border_y_margin = border_y_margin
         self.palette_x_margin = palette_x_margin
         self.palette_y_margin = palette_y_margin
         self.horizontal_text = horizontal_text
         self.horizontal_text_start_position = horizontal_text_start_position
         self.horizontal_text_size = horizontal_text_size
-        self.palette_width = (self.palette_x_coordinates[2]
-                               -self.palette_x_coordinates[0])
-        self.palette_height = (self.palette_y_coordinates[1]
-                               -self.palette_y_coordinates[0])
         self.figure = figure
         if draw_instantly:
+            self.calculate_points()
             self.draw_palette()
 
 
+    def calculate_points(self):
+        point_x = (((self.total_x_borders[2]-self.total_x_borders[0])
+                    -2*self.border_x_margin
+                    -self.palette_x_margin*(len(self.palettes)-1))
+                    / len(self.palettes))
+        point_y = (((self.total_y_borders[1]-self.total_y_borders[0])
+                    -2*self.border_y_margin
+                    -self.palette_y_margin*(len(self.palettes[0])-1))
+                    / len(self.palettes[0]))
+        self.x_coordinates = [self.total_x_borders[0]+self.border_x_margin]*4
+        self.x_coordinates[2] += point_x; self.x_coordinates[3] += point_x
+        self.y_coordinates = [self.total_y_borders[0]+self.border_y_margin]*4
+        self.y_coordinates[1] += point_y; self.y_coordinates[2] += point_y
+
+
+
     def draw_palette(self):
-        x_coords = self.palette_x_coordinates
-        y_coords = self.palette_y_coordinates
+        x_coords = self.x_coordinates
+        y_coords = self.y_coordinates
+        palette_width = x_coords[2]-x_coords[0]
+        palette_height = y_coords[1]-y_coords[0]
         for palette in self.palettes:
             for color in palette[::-1]:
                 add_rectangle(self.figure, x_coords, y_coords, color)
-                y_coords = [y+self.palette_height+self.palette_y_margin
+                y_coords = [y+palette_height+self.palette_y_margin
                             for y in y_coords]
-            y_coords = self.palette_y_coordinates
-            x_coords = [x+self.palette_width+self.palette_x_margin
+            y_coords = self.y_coordinates
+            x_coords = [x+palette_width+self.palette_x_margin
                         for x in x_coords]
 
 
@@ -426,23 +445,24 @@ def main() -> None:
     figure.update_xaxes(visible=False, showticklabels=False)
     figure.update_yaxes(visible=False, showticklabels=False,
                         scaleanchor="x", scaleratio=1)
-    circles = ResultCircle(results=[45.4, 39.4, 9.1],
-                           colors=[COLORS_D_PRES[1], COLORS_R_PRES[1],
-                                   COLORS_I_DOWN[1]],
+    circles = ResultCircle(results=[56.92, 40.55],
+                           colors=[COLORS_R_PRES[1], COLORS_D_PRES[1]],
                            color_other=COLOR_OTHER,
-                           turnout=55.0,
+                           turnout=73.1,
                            circle_point=[80, 305],
                            radii=[66, 63, 60, 30],
                            turnout_text_size=15,
                            figure=figure)
-    legend = Legend(palettes=[COLORS_D_PRES, COLORS_R_PRES],
-                    palette_x_coordinates=[195, 195, 240, 240],
-                    palette_y_coordinates=[175, 200, 200, 175],
+    legend = Legend(palettes=[COLORS_R_PRES, COLORS_D_PRES],
+                    total_x_borders=[190, 190, 295, 295],
+                    total_y_borders=[170, 380, 380, 170],
+                    border_x_margin=5,
+                    border_y_margin=5,
                     palette_x_margin=5,
                     palette_y_margin=10,
                     horizontal_text=["hey", "hey"],
                     horizontal_text_start_position=[0, 0],
-                    horizontal_text_size=0,
+                    horizontal_text_size=13,
                     figure=figure)
     figure.write_image("test-from-scratch.svg", width=300, height=500)
 
