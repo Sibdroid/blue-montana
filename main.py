@@ -436,16 +436,48 @@ class CandidateBlocks:
     def __init__(self,
                  x_borders: list[float],
                  y_borders: list[float],
+                 y_margin: float,
                  colors: list[str],
                  candidate_text: list[str],
                  candidate_text_positions: list[list[float]],
-                 candidate_text_size: float) -> None:
+                 candidate_text_size: float,
+                 result_text: list[str],
+                 result_text_positions: list[list[float]],
+                 result_text_size: float,
+                 figure: go.Figure,
+                 draw_instantly: bool=True) -> None:
         self.x_borders = x_borders
         self.y_borders = y_borders
+        self.y_margin = y_margin
         self.colors = colors
         self.candidate_text = candidate_text
         self.candidate_text_positions = candidate_text_positions
         self.candidate_text_size = candidate_text_size
+        self.result_text = result_text
+        self.result_text_positions = result_text_positions
+        self.result_text_size = result_text_size
+        self.figure = figure
+        self.block_height = self.y_borders[1]-self.y_borders[0]
+        if draw_instantly:
+            self.draw_blocks()
+            self.add_text()
+
+
+    def draw_blocks(self):
+        x_borders = self.x_borders
+        y_borders = self.y_borders
+        for color in self.colors:
+            add_rectangle(self.figure, x_borders, y_borders, color)
+            y_borders = [i+self.block_height+self.y_margin
+                         for i in y_borders]
+
+    def add_text(self):
+        for text, position in zip(self.candidate_text,
+                                  self.candidate_text_positions):
+            add_text(self.figure, position, text, self.candidate_text_size)
+        for text, position in zip(self.result_text,
+                                  self.result_text_positions[::-1]):
+            add_text(self.figure, position, text, self.result_text_size)
 
 
 def main() -> None:
@@ -493,6 +525,18 @@ def main() -> None:
                     vertical_text_position=[169, 188.5],
                     vertical_text_size=13,
                     figure=figure)
+    blocks = CandidateBlocks(x_borders=[10, 10, 290, 290],
+                             y_borders=[385, 435, 435, 385],
+                             y_margin=5,
+                             colors=[COLORS_D_PRES[1], COLORS_R_PRES[1]],
+                             candidate_text=["Trump/Pence (R)",
+                                             "Biden/Harris (D)"],
+                             candidate_text_positions=[[100, 465], [98, 410]],
+                             candidate_text_size=20,
+                             result_text=["56.9%", "40.5%"],
+                             result_text_positions=[[250, 410], [250, 465]],
+                             result_text_size=20,
+                             figure=figure)
     figure.write_image("test-from-scratch.svg", width=300, height=500)
 
 
