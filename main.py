@@ -297,6 +297,9 @@ def add_line(figure: go.Figure,
         width (float).
         dash_style (str).
 
+    Raises:
+        A ValueError if 'mode' is not 'horizontal or 'vertical'.
+
     Example(s):
         >>> figure = go.Figure()
         >>> add_line(figure, "horizontal", 50, [10, 40], "red", 3, "dash")
@@ -334,9 +337,40 @@ class ResultCircle:
                  turnout_text_size: float,
                  figure: go.Figure,
                  draw_instantly: bool = True) -> None:
+        """Initializes an instance of ResultCircle class.
+
+        Args:
+            results (list[float]): the candidates' results.
+            should not exceed 100.
+            colors (list[str]): the candidates' colors. Should be of the same
+            length as 'results'.
+            color_other (str): the color of all non-named candidates.
+            turnout (float): the turnout. Should not exceed 100.
+            circle_point (list[float]): the center of the circles.
+            radii (list[float]): the radii of the circles.
+            Advised to contain four values.
+            turnout_text_size (float).
+            figure (go.Figure).
+            draw_instantly (bool). Whether to draw the circles instantly,
+            defaults to True.
+
+        Raises:
+            A ValueError if the sum of results exceeds 100.
+            A ValueError if the length of results and colors is different.
+            A ValueError if the turnout exceeds 100.
+        """
+        if sum(results) > 100:
+            raise ValueError(f"The sum of results should not be greater "
+                             f"than 100, {sum(results)} > 100")
         self.results = results
+        if len(results) != len(colors):
+            raise ValueError(f"The lengths of 'colors' and 'results' should "
+                             f"be the same")
         self.colors = colors
         self.color_other = color_other
+        if turnout > 100:
+            raise ValueError(f"The turnout should not be greater than"
+                             f" 100, {turnout} > 100")
         self.turnout = turnout
         self.circle_point = circle_point
         self.radii = radii
@@ -395,6 +429,7 @@ class ResultCircle:
                               opacity=1)
 
     def add_circles(self) -> None:
+        """Adds concentric circles."""
         turnout_segment = self.turnout / 100 * 360
         self._add_circle(self.circle_point, self.radii[0],
                          0, turnout_segment, 50, False, self.color_other)
@@ -413,6 +448,7 @@ class ResultCircle:
                          50, False, "white")
 
     def add_text(self) -> None:
+        """Adds turnout text."""
         add_text(self.figure, self.circle_point,
                  f"{self.turnout}%", self.turnout_text_size)
 
