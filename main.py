@@ -7,6 +7,7 @@ import os
 from decimal import Decimal
 from math import pi
 
+
 COLORS_D_PRES = ["#B9D7FF", "#86B6F2", "#4389E3",
                  "#1666CB", "#0645B4", "#002B84"]
 COLORS_R_PRES = ["#F2B3BE", "#E27F90", "#CC2F4A",
@@ -144,7 +145,8 @@ class ChoroplethMap:
             boundaries (str): the boundaries of the image. Should consist of
             four integers divided by spaces: for example, '130 130 440 240'.
             draw_instantly (bool): whether to draw the map when initialized.
-            Defaults to True."""
+            Defaults to True.
+        """
 
         self.data = read_data(data, {"id": str})
         with open(geojson) as file:
@@ -175,7 +177,8 @@ class ChoroplethMap:
             value (float): the value to be transformed.
 
         Returns:
-            The color from self.colors_up or self.colors_down."""
+            The color from self.colors_up or self.colors_down.
+        """
         if value > 0:
             colors = self.colors_up
         else:
@@ -237,6 +240,15 @@ def add_text(figure: go.Figure,
              text: str,
              size: float,
              color: str = "black") -> None:
+    """Adds text to the figure.
+
+    Args:
+        figure (go.Figure).
+        point (list[float, float]): the anchor of the text.
+        text (str).
+        size (float).
+        color (str). Defaults to black.
+    """
     figure.add_annotation(x=point[0], y=point[1], text=text,
                           showarrow=False, ax=0, ay=0,
                           font=dict(size=size, color=color))
@@ -246,11 +258,68 @@ def add_rectangle(figure: go.Figure,
                   x_coords: list[float],
                   y_coords: list[float],
                   color: str) -> None:
+    """Adds a rectangle to the figure.
+
+    Args:
+        figure (go.Figure).
+        x_coords (list[float]).
+        y_coords (list[float]).
+        color (str).
+
+    Example(s):
+        >>> figure = go.Figure()
+        >>> add_rectangle(figure, [0, 0, 20, 20], [0, 30, 30, 0], "blue")
+        # Adds a 20*30 blue rectangle.
+    """
     x_coords += [x_coords[-1]]
     y_coords += [y_coords[-1]]
     figure.add_trace(go.Scatter(x=x_coords, y=y_coords, fill="toself",
                                 fillcolor=color,
                                 opacity=1, mode="none"))
+
+
+def add_line(figure: go.Figure,
+             mode: t.Literal["horizontal", "vertical"],
+             anchor_line: float,
+             boundaries: list[float, float],
+             color: str,
+             width: float,
+             dash_style: str) -> None:
+    """Adds a horizontal or a veritcal line to the figure.
+
+    Args:
+        figure (go.Figure).
+        mode (t.Literal["horizontal", "vertical"]): the mode of the line.
+        anchor_line (float): the coordinate of the line. Is 'x' if mode
+        is horizontal, 'y' if otherwise.
+        boundaries (list[float, float]): the boundaries of the line.
+        color (str).
+        width (float).
+        dash_style (str).
+
+    Example(s):
+        >>> figure = go.Figure()
+        >>> add_line(figure, "horizontal", 50, [10, 40], "red", 3, "dash")
+        # Adds a dashed red line with a width of 3 that starts
+        # at (50, 10) and ends at (50, 40).
+    """
+    if mode == "horizontal":
+        x = boundaries
+        y = [anchor_line, anchor_line]
+    elif mode == "vertical":
+        x = [anchor_line, anchor_line]
+        y = boundaries
+    else:
+        raise ValueError(f"The mode should be 'horizontal' or 'vertical'",
+                         f", not {mode}")
+    figure.add_trace(go.Scatter(x=x,
+                                y=y,
+                                line=dict(color=color,
+                                          dash=dash_style,
+                                          width=width),
+                                showlegend=False,
+                                mode="lines"))
+
 
 
 class ResultCircle:
@@ -537,7 +606,14 @@ def main() -> None:
                              result_text_positions=[[250, 410], [250, 465]],
                              result_text_size=20,
                              figure=figure)
+    # Experimental
+    add_line(figure, "horizontal", 130, [10, 290], "#CCCCCC", 3, "solid")
+    vertical_lines = [45, 80, 115, 150, 185, 220, 255]
+    for line in vertical_lines:
+        add_line(figure, "vertical", line, [115, 125], "#CCCCCC", 3, "solid")
+
     figure.write_image("test-from-scratch.svg", width=300, height=500)
+
 
 
 if __name__ == "__main__":
