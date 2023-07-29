@@ -324,21 +324,6 @@ def add_line(figure: go.Figure,
                                 mode="lines"))
 
 
-def add_point(figure: go.Figure,
-              coordinates: list[float],
-              color: str,
-              size: float,
-              alpha: float=1) -> None:
-    figure.add_trace(go.Scatter(x=[coordinates[0]],
-                                y=[coordinates[1]],
-                                marker=dict(color=color,
-                                            size=size),
-                                showlegend=False,
-                                opacity=alpha,
-                                mode="markers"))
-
-
-
 class ResultCircle:
 
     def __init__(self,
@@ -485,6 +470,35 @@ class Legend:
                  vertical_text_size: float,
                  figure: go.Figure,
                  draw_instantly: bool = True) -> None:
+        """Initializes an instance of Legend class.
+
+        Args:
+            palettes (list[list[str]): the list of palettes, each containing
+            an equal amount of colors.
+            total_x_borders (list[float]): the 'x' borders of the total space
+            taken up by the legend.
+            total_y_borders (list[float]): same as the above, but for 'y'.
+            border_x_margin (float): the 'x' margin between the legend and
+            the total space.
+            border_y_margin (float): same as the above, but for 'y'.
+            palette_x_margin (float): the horizontal margin between the
+            palette blocks.
+            palette_y_margin (float): the vertical margin between the
+            palette blocks.
+            horizontal_text (list[str]).
+            horizontal_text_positions (list[list[float]]).
+            horizontal_text_size (float).
+            vertical_text (str).
+            vertical_text_position: the sole starting position of the
+            vertical text. Additional positions are calculated automatically.
+            vertical_text_size (float).
+            figure (go.Figure).
+            draw_instantly (bool). Whether to draw the legend instantly,
+            defaults to True.
+
+        Raises:
+            A ValueError if the length of palettes is different.
+        """
         if len(set([len(i) for i in palettes])) != 1:
             raise ValueError("The palettes should all be the same length")
         self.palettes = palettes
@@ -507,6 +521,7 @@ class Legend:
             self.add_text()
 
     def calculate_points(self):
+        """Calculates the starting coordinates of palette blocks."""
         point_x = (((self.total_x_borders[2] - self.total_x_borders[0])
                     - 2 * self.border_x_margin
                     - self.palette_x_margin * (len(self.palettes) - 1))
@@ -527,6 +542,7 @@ class Legend:
         self.palette_height = self.y_coordinates[1] - self.y_coordinates[0]
 
     def draw_palette(self):
+        """Draws the palette."""
         x_coords = self.x_coordinates
         y_coords = self.y_coordinates
         for palette in self.palettes:
@@ -539,6 +555,7 @@ class Legend:
                         for x in x_coords]
 
     def add_text(self):
+        """Adds horizontal and vertical text."""
         for position, text in zip(self.horizontal_text_positions,
                                   self.horizontal_text):
             add_text(self.figure, position, text, self.horizontal_text_size)
@@ -733,16 +750,6 @@ def main() -> None:
               -1.35, 0.24, 0.31, 0.63, 1.16, 2.39, 2.78, 7.11, 7.35, 9.07,
               10.11, 10.79, 13.50, 15.94, 16.08, 16.99, 18.97, 19.20, 20.07,
               20.77, 23.13, 29.16, 29.46, 33.21, 33.46, 35.41, 86.75]
-    #for bottom, result in zip([30, 70, 110], [-56.9, -49.6, 51.2]):
-    #    add_rectangle(figure, [10, 10, 195, 195],
-    #                  [bottom, bottom+30, bottom+30, bottom], "#eeeeee")
-    #    if result > 0:
-    #        color = COLORS_D_PRES[1]
-    #    else:
-    #        color = COLORS_R_PRES[1]
-    #    result = 185/100*abs(result)+10
-    #    add_rectangle(figure, [10, 10, result, result],
-    #                  [bottom, bottom+30, bottom+30, bottom], color)
     figure.write_image("test-from-scratch.svg", width=300, height=500)
 
 
