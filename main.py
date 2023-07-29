@@ -324,6 +324,20 @@ def add_line(figure: go.Figure,
                                 mode="lines"))
 
 
+def add_point(figure: go.Figure,
+              coordinates: list[float],
+              color: str,
+              size: float,
+              alpha: float=1) -> None:
+    figure.add_trace(go.Scatter(x=[coordinates[0]],
+                                y=[coordinates[1]],
+                                marker=dict(color=color,
+                                            size=size),
+                                showlegend=False,
+                                opacity=alpha,
+                                mode="markers"))
+
+
 
 class ResultCircle:
 
@@ -643,11 +657,22 @@ def main() -> None:
                              result_text_size=20,
                              figure=figure)
     # Experimental
-    add_line(figure, "horizontal", 130, [10, 290], "#CCCCCC", 3, "solid")
-    vertical_lines = [45, 80, 115, 150, 185, 220, 255]
-    for line in vertical_lines:
-        add_line(figure, "vertical", line, [115, 125], "#CCCCCC", 3, "solid")
-
+    values = [-43.38, -38.93, -33.34, -33.09, -30.77, -27.62, -26.16, -25.94,
+              -25.46, -23.21, -20.48, -19.06, -18.61, -16.55, -16.37, -16.07,
+              -15.39, -14.64, -11.68, -10.06, -8.20, -8.03, -5.58, -3.36,
+              -1.35, 0.24, 0.31, 0.63, 1.16, 2.39, 2.78, 7.11, 7.35, 9.07,
+              10.11, 10.79, 13.50, 15.94, 16.08, 16.99, 18.97, 19.20, 20.07,
+              20.77, 23.13, 29.16, 29.46, 33.21, 33.46, 35.41, 86.75]
+    for bottom, result in zip([30, 70, 110], [-56.9, -49.6, 51.2]):
+        add_rectangle(figure, [10, 10, 195, 195],
+                      [bottom, bottom+30, bottom+30, bottom], "#eeeeee")
+        if result > 0:
+            color = COLORS_D_PRES[1]
+        else:
+            color = COLORS_R_PRES[1]
+        result = 185/100*abs(result)+10
+        add_rectangle(figure, [10, 10, result, result],
+                      [bottom, bottom+30, bottom+30, bottom], color)
     figure.write_image("test-from-scratch.svg", width=300, height=500)
 
 
