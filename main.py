@@ -598,6 +598,66 @@ class CandidateBlocks:
                                   self.result_text_positions[::-1]):
             add_text(self.figure, position, text, self.result_text_size)
 
+class ResultPlot:
+
+
+    def __init__(self,
+                 x_borders: list[float],
+                 y_borders: list[float],
+                 y_margin: float,
+                 results: list[float],
+                 colors: list[str],
+                 neutral_color: str,
+                 locality_text: list[str],
+                 locality_text_positions: list[list[float]],
+                 locality_text_size: float,
+                 figure: go.Figure,
+                 draw_instantly: bool=True) -> None:
+        self.x_borders = x_borders
+        self.y_borders = y_borders
+        self.y_margin = y_margin
+        self.results = results
+        self.colors = colors
+        self.neutral_color = neutral_color
+        self.locality_text = locality_text
+        self.locality_text_positions = locality_text_positions
+        self.locality_text_size = locality_text_size
+        self.figure = figure
+        self.bar_width = x_borders[2]-x_borders[0]
+        self.bar_height = y_borders[1]-y_borders[0]
+        if draw_instantly:
+            self.draw_bars()
+            self.draw_line()
+            self.add_text()
+
+
+    def draw_bars(self):
+        x_borders = self.x_borders
+        y_borders = self.y_borders
+        for result, color in zip(self.results, self.colors):
+            add_rectangle(self.figure, x_borders, y_borders, self.neutral_color)
+            new_x_borders = (x_borders[:2]+
+                             [x_borders[0]+self.bar_width*result/100])
+            add_rectangle(self.figure, new_x_borders, y_borders, color)
+            y_borders = [i+self.bar_height+self.y_margin for i in y_borders]
+            if color == self.colors[-1]:
+                self.top_y = y_borders[0]-self.y_margin
+
+
+    def draw_line(self):
+        add_line(self.figure, "vertical",
+                 (min(self.x_borders)+max(self.x_borders))/2,
+                 [self.y_borders[0], self.top_y], COLOR_OTHER, 2, "solid")
+        print(self.x_borders)
+
+
+    def add_text(self):
+        for text, position in zip(self.locality_text[::-1],
+                                  self.locality_text_positions):
+            add_text(self.figure, position, text, self.locality_text_size)
+
+
+
 
 def main() -> None:
     pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
@@ -656,23 +716,33 @@ def main() -> None:
                              result_text_positions=[[250, 410], [250, 465]],
                              result_text_size=20,
                              figure=figure)
-    # Experimental
+    bars = ResultPlot(x_borders=[10, 10, 240, 240],
+                      y_borders=[30, 60, 60, 30],
+                      y_margin=10,
+                      results=[55.3, 56.1, 56.9],
+                      colors=[COLORS_R_PRES[1]]*3,
+                      neutral_color="#EEEEEE",
+                      locality_text=["2020", "2016", "2012"],
+                      locality_text_positions=[[265, 45], [265, 85],
+                                               [265, 125]],
+                      locality_text_size=13,
+                      figure=figure)
     values = [-43.38, -38.93, -33.34, -33.09, -30.77, -27.62, -26.16, -25.94,
               -25.46, -23.21, -20.48, -19.06, -18.61, -16.55, -16.37, -16.07,
               -15.39, -14.64, -11.68, -10.06, -8.20, -8.03, -5.58, -3.36,
               -1.35, 0.24, 0.31, 0.63, 1.16, 2.39, 2.78, 7.11, 7.35, 9.07,
               10.11, 10.79, 13.50, 15.94, 16.08, 16.99, 18.97, 19.20, 20.07,
               20.77, 23.13, 29.16, 29.46, 33.21, 33.46, 35.41, 86.75]
-    for bottom, result in zip([30, 70, 110], [-56.9, -49.6, 51.2]):
-        add_rectangle(figure, [10, 10, 195, 195],
-                      [bottom, bottom+30, bottom+30, bottom], "#eeeeee")
-        if result > 0:
-            color = COLORS_D_PRES[1]
-        else:
-            color = COLORS_R_PRES[1]
-        result = 185/100*abs(result)+10
-        add_rectangle(figure, [10, 10, result, result],
-                      [bottom, bottom+30, bottom+30, bottom], color)
+    #for bottom, result in zip([30, 70, 110], [-56.9, -49.6, 51.2]):
+    #    add_rectangle(figure, [10, 10, 195, 195],
+    #                  [bottom, bottom+30, bottom+30, bottom], "#eeeeee")
+    #    if result > 0:
+    #        color = COLORS_D_PRES[1]
+    #    else:
+    #        color = COLORS_R_PRES[1]
+    #    result = 185/100*abs(result)+10
+    #    add_rectangle(figure, [10, 10, result, result],
+    #                  [bottom, bottom+30, bottom+30, bottom], color)
     figure.write_image("test-from-scratch.svg", width=300, height=500)
 
 
