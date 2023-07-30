@@ -628,6 +628,8 @@ class ResultPlot:
                  locality_text: list[str],
                  locality_text_positions: list[list[float]],
                  locality_text_size: float,
+                 result_text_positions: list[list[float]],
+                 result_text_size: float,
                  figure: go.Figure,
                  draw_instantly: bool=True) -> None:
         self.x_borders = x_borders
@@ -639,6 +641,8 @@ class ResultPlot:
         self.locality_text = locality_text
         self.locality_text_positions = locality_text_positions
         self.locality_text_size = locality_text_size
+        self.result_text_positions = result_text_positions
+        self.result_text_size = result_text_size
         self.figure = figure
         self.bar_width = x_borders[2]-x_borders[0]
         self.bar_height = y_borders[1]-y_borders[0]
@@ -664,7 +668,7 @@ class ResultPlot:
     def draw_line(self):
         add_line(self.figure, "vertical",
                  (min(self.x_borders)+max(self.x_borders))/2,
-                 [self.y_borders[0], self.top_y], COLOR_OTHER, 2, "solid")
+                 [self.y_borders[0], self.top_y], COLOR_OTHER, 2, "1px")
         print(self.x_borders)
 
 
@@ -672,6 +676,9 @@ class ResultPlot:
         for text, position in zip(self.locality_text[::-1],
                                   self.locality_text_positions):
             add_text(self.figure, position, text, self.locality_text_size)
+        for text, position in zip(self.results,
+                                  self.result_text_positions):
+            add_text(self.figure, position, f"{text}%", self.result_text_size)
 
 
 
@@ -743,6 +750,8 @@ def main() -> None:
                       locality_text_positions=[[265, 45], [265, 85],
                                                [265, 125]],
                       locality_text_size=13,
+                      result_text_positions=[[35, 45], [35, 85], [35, 125]],
+                      result_text_size=13,
                       figure=figure)
     values = [-43.38, -38.93, -33.34, -33.09, -30.77, -27.62, -26.16, -25.94,
               -25.46, -23.21, -20.48, -19.06, -18.61, -16.55, -16.37, -16.07,
