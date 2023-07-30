@@ -582,6 +582,23 @@ class CandidateBlocks:
                  result_text_size: float,
                  figure: go.Figure,
                  draw_instantly: bool=True) -> None:
+        """Initializes an instance of CandidateBlocks class.
+
+        Args:
+            x_borders (list[float]).
+            y_borders (list[float]).
+            y_margin (float): the vertical margin between the blocks.
+            colors (list[str]).
+            candidate_text (list[str]).
+            candidate_text_positions (list[list[float]]).
+            candidate_text_size: float.
+            result_text (list[str]).
+            result_text_positions (list[list[float]]).
+            result_text_size (float).
+            figure (go.Figure).
+            draw_instantly (bool). Whether to draw the blocks instantly,
+            defaults to True.
+        """
         self.x_borders = x_borders
         self.y_borders = y_borders
         self.y_margin = y_margin
@@ -600,6 +617,7 @@ class CandidateBlocks:
 
 
     def draw_blocks(self):
+        """Draws the candidate blocks."""
         x_borders = self.x_borders
         y_borders = self.y_borders
         for color in self.colors:
@@ -608,6 +626,7 @@ class CandidateBlocks:
                          for i in y_borders]
 
     def add_text(self):
+        "Adds text."
         for text, position in zip(self.candidate_text,
                                   self.candidate_text_positions):
             add_text(self.figure, position, text, self.candidate_text_size)
@@ -625,22 +644,39 @@ class ResultPlot:
                  results: list[float],
                  colors: list[str],
                  neutral_color: str,
-                 locality_text: list[str],
-                 locality_text_positions: list[list[float]],
-                 locality_text_size: float,
+                 year_text: list[str],
+                 year_text_positions: list[list[float]],
+                 year_text_size: float,
                  result_text_positions: list[list[float]],
                  result_text_size: float,
                  figure: go.Figure,
                  draw_instantly: bool=True) -> None:
+        """Initializes an instance of ResultPlot class.
+
+        Args:
+            x_borders (list[float]).
+            y_borders (list(float]).
+            y_margin (float): the vertical margin between the bars.
+            results (list[float]).
+            colors (list[str]). The colors of the bars.
+            neutral_color (str): the background color for bars.
+            year_text (list[str]): the years for the results.
+            year_text_positions (list[list[float]]).
+            year_text_size (float).
+            result_text_positions (list[list[float]]).
+            result_text_size (float).
+            draw_instantly (bool). Whether to draw the plot instantly,
+            defaults to True.
+        """
         self.x_borders = x_borders
         self.y_borders = y_borders
         self.y_margin = y_margin
         self.results = results
         self.colors = colors
         self.neutral_color = neutral_color
-        self.locality_text = locality_text
-        self.locality_text_positions = locality_text_positions
-        self.locality_text_size = locality_text_size
+        self.year_text = year_text
+        self.year_text_positions = year_text_positions
+        self.year_text_size = year_text_size
         self.result_text_positions = result_text_positions
         self.result_text_size = result_text_size
         self.figure = figure
@@ -653,6 +689,7 @@ class ResultPlot:
 
 
     def draw_bars(self):
+        """Draws horizontal bars."""
         x_borders = self.x_borders
         y_borders = self.y_borders
         for result, color in zip(self.results, self.colors):
@@ -666,15 +703,17 @@ class ResultPlot:
 
 
     def draw_line(self):
+        """Draws a line in the middle of the bars."""
         add_line(self.figure, "vertical",
                  (min(self.x_borders)+max(self.x_borders))/2,
                  [self.y_borders[0], self.top_y], COLOR_OTHER, 2, "1px")
 
 
     def add_text(self):
-        for text, position in zip(self.locality_text[::-1],
-                                  self.locality_text_positions):
-            add_text(self.figure, position, text, self.locality_text_size)
+        """Adds text."""
+        for text, position in zip(self.year_text[::-1],
+                                  self.year_text_positions):
+            add_text(self.figure, position, text, self.year_text_size)
         for text, position in zip(self.results,
                                   self.result_text_positions):
             add_text(self.figure, position, f"{text}%", self.result_text_size)
@@ -689,6 +728,18 @@ def draw_legend(candidates: list[str],
                 bar_colors: list[str],
                 bar_years: list[str],
                 name: str) -> None:
+    """Draws a standard legend.
+
+    Args:
+        candidates (list[str]): the names of the candidates.
+        results (list[float]).
+        past_results (list[float]). The results of previous two elections.
+        palettes (list[list[str]]).
+        parties (list[str]).
+        bar_colors (list[str]).
+        bar_years (list[str]).
+        name (str). The name of the legend.
+    """
     figure = go.Figure()
     figure.update_layout(template='simple_white',
                          xaxis_range=[0, 300],
@@ -723,7 +774,7 @@ def draw_legend(candidates: list[str],
     blocks = CandidateBlocks(x_borders=[10, 10, 290, 290],
                              y_borders=[385, 435, 435, 385],
                              y_margin=5,
-                             colors=[palettes[0][1], palettes[1][1]],
+                             colors=[palettes[1][1], palettes[0][1]],
                              candidate_text=candidates,
                              candidate_text_positions=[[100, 465], [98, 410]],
                              candidate_text_size=20,
@@ -734,13 +785,13 @@ def draw_legend(candidates: list[str],
     bars = ResultPlot(x_borders=[10, 10, 240, 240],
                       y_borders=[30, 60, 60, 30],
                       y_margin=10,
-                      results=[max(results)]+past_results,
+                      results=([max(results)]+past_results)[::-1],
                       colors=bar_colors,
                       neutral_color="#EEEEEE",
-                      locality_text=bar_years,
-                      locality_text_positions=[[265, 45], [265, 85],
+                      year_text=bar_years,
+                      year_text_positions=[[265, 45], [265, 85],
                                                [265, 125]],
-                      locality_text_size=13,
+                      year_text_size=13,
                       result_text_positions=[[35, 45], [35, 85], [35, 125]],
                       result_text_size=13,
                       figure=figure)
@@ -759,8 +810,8 @@ def main() -> None:
     #                        "130 130 440 240")
     draw_legend(["Trump/Pence (R)", "Biden/Harris (D)"],
                 [56.9, 40.5], [56.1, 55.3], 73.1,
-                [COLORS_D_PRES, COLORS_R_PRES],
-                ["D", "R"], [COLORS_R_PRES[1]]*3, ["2020", "2016", "2012"],
+                [COLORS_R_PRES, COLORS_D_PRES],
+                ["R", "D"], [COLORS_R_PRES[1]]*3, ["2020", "2016", "2012"],
                 "test-new.svg")
 
 
