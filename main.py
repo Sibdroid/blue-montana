@@ -669,7 +669,6 @@ class ResultPlot:
         add_line(self.figure, "vertical",
                  (min(self.x_borders)+max(self.x_borders))/2,
                  [self.y_borders[0], self.top_y], COLOR_OTHER, 2, "1px")
-        print(self.x_borders)
 
 
     def add_text(self):
@@ -681,22 +680,15 @@ class ResultPlot:
             add_text(self.figure, position, f"{text}%", self.result_text_size)
 
 
-
-
-def main() -> None:
-    pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
-                             "transverse mercator",
-                             COLORS_D_PRES, COLORS_R_PRES,
-                             "montana-presidential.svg",
-                             "130 130 440 240")
-    sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
-                            "transverse mercator",
-                            COLORS_I_DOWN, COLORS_R_DOWN,
-                            "montana-senate.svg",
-                            "130 130 440 240")
-
-
-def main() -> None:
+def draw_legend(candidates: list[str],
+                results: list[float],
+                past_results: list[float],
+                turnout: float,
+                palettes: list[list[str]],
+                parties: list[str],
+                bar_colors: list[str],
+                bar_years: list[str],
+                name: str) -> None:
     figure = go.Figure()
     figure.update_layout(template='simple_white',
                          xaxis_range=[0, 300],
@@ -706,22 +698,22 @@ def main() -> None:
     figure.update_xaxes(visible=False, showticklabels=False)
     figure.update_yaxes(visible=False, showticklabels=False,
                         scaleanchor="x", scaleratio=1)
-    circles = ResultCircle(results=[56.92, 40.55],
-                           colors=[COLORS_R_PRES[1], COLORS_D_PRES[1]],
+    circles = ResultCircle(results=results,
+                           colors=[palettes[0][1], palettes[1][1]],
                            color_other=COLOR_OTHER,
-                           turnout=73.1,
+                           turnout=turnout,
                            circle_point=[80, 305],
                            radii=[66, 63, 60, 30],
                            turnout_text_size=15,
                            figure=figure)
-    legend = Legend(palettes=[COLORS_R_PRES, COLORS_D_PRES],
+    legend = Legend(palettes=palettes,
                     total_x_borders=[190, 190, 295, 295],
                     total_y_borders=[170, 380, 380, 170],
                     border_x_margin=5,
                     border_y_margin=5,
                     palette_x_margin=5,
                     palette_y_margin=10,
-                    horizontal_text=["R", "D"],
+                    horizontal_text=parties,
                     horizontal_text_positions=[[217.5, 160], [265, 160]],
                     horizontal_text_size=13,
                     vertical_text=[f">{i}%" for i in range(40, 100, 10)][::-1],
@@ -731,36 +723,45 @@ def main() -> None:
     blocks = CandidateBlocks(x_borders=[10, 10, 290, 290],
                              y_borders=[385, 435, 435, 385],
                              y_margin=5,
-                             colors=[COLORS_D_PRES[1], COLORS_R_PRES[1]],
-                             candidate_text=["Trump/Pence (R)",
-                                             "Biden/Harris (D)"],
+                             colors=[palettes[0][1], palettes[1][1]],
+                             candidate_text=candidates,
                              candidate_text_positions=[[100, 465], [98, 410]],
                              candidate_text_size=20,
-                             result_text=["56.9%", "40.5%"],
+                             result_text=[f"{i}%" for i in results],
                              result_text_positions=[[250, 410], [250, 465]],
                              result_text_size=20,
                              figure=figure)
     bars = ResultPlot(x_borders=[10, 10, 240, 240],
                       y_borders=[30, 60, 60, 30],
                       y_margin=10,
-                      results=[55.3, 56.1, 56.9],
-                      colors=[COLORS_R_PRES[1]]*3,
+                      results=[max(results)]+past_results,
+                      colors=bar_colors,
                       neutral_color="#EEEEEE",
-                      locality_text=["2020", "2016", "2012"],
+                      locality_text=bar_years,
                       locality_text_positions=[[265, 45], [265, 85],
                                                [265, 125]],
                       locality_text_size=13,
                       result_text_positions=[[35, 45], [35, 85], [35, 125]],
                       result_text_size=13,
                       figure=figure)
-    values = [-43.38, -38.93, -33.34, -33.09, -30.77, -27.62, -26.16, -25.94,
-              -25.46, -23.21, -20.48, -19.06, -18.61, -16.55, -16.37, -16.07,
-              -15.39, -14.64, -11.68, -10.06, -8.20, -8.03, -5.58, -3.36,
-              -1.35, 0.24, 0.31, 0.63, 1.16, 2.39, 2.78, 7.11, 7.35, 9.07,
-              10.11, 10.79, 13.50, 15.94, 16.08, 16.99, 18.97, 19.20, 20.07,
-              20.77, 23.13, 29.16, 29.46, 33.21, 33.46, 35.41, 86.75]
-    figure.write_image("test-from-scratch.svg", width=300, height=500)
+    figure.write_image(name, width=300, height=500)
 
+def main() -> None:
+    #pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
+    #                         "transverse mercator",
+    #                         COLORS_D_PRES, COLORS_R_PRES,
+    #                         "montana-presidential.svg",
+    #                         "130 130 440 240")
+    #sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
+    #                        "transverse mercator",
+    #                        COLORS_I_DOWN, COLORS_R_DOWN,
+    #                        "montana-senate.svg",
+    #                        "130 130 440 240")
+    draw_legend(["Trump/Pence (R)", "Biden/Harris (D)"],
+                [56.9, 40.5], [56.1, 55.3], 73.1,
+                [COLORS_D_PRES, COLORS_R_PRES],
+                ["D", "R"], [COLORS_R_PRES[1]]*3, ["2020", "2016", "2012"],
+                "test-new.svg")
 
 
 if __name__ == "__main__":
