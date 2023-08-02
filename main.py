@@ -3,8 +3,10 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import json
+import sys
 import os
 from decimal import Decimal
+from PIL import Image
 from math import pi
 
 
@@ -127,6 +129,8 @@ class ChoroplethMap:
                  colors_down: list[str],
                  name: str,
                  boundaries: str,
+                 width: float,
+                 height: float,
                  draw_instantly: bool = True) -> None:
         """Initializes an instance of ChoroplethMap class.
 
@@ -156,6 +160,8 @@ class ChoroplethMap:
         self.colors_down = colors_down
         self.name = name
         self.boundaries = boundaries
+        self.width = width
+        self.height = height
         self.add_ids()
         self.add_colors()
         self.add_colorscale()
@@ -231,7 +237,9 @@ class ChoroplethMap:
 
     def draw_standard_map(self) -> None:
         """Draws a standard map and updates its boundaries."""
-        standard_map = self.draw_map().write_image(self.name)
+        standard_map = self.draw_map().write_image(self.name,
+                                                   width=self.width,
+                                                   height=self.height)
         edit_viewbox(self.name, self.boundaries)
 
 
@@ -797,12 +805,28 @@ def draw_legend(candidates: list[str],
                       figure=figure)
     figure.write_image(name, width=300, height=500)
 
+
+def combine_images(image1_path: str,
+                   image2_path: str,
+                   name: str) -> None:
+    images = [Image.open(i) for i in [image1_path, image2_path]]
+    widths, heights = zip(*(i.size for i in images))
+    total_width = sum(widths)
+    max_height = max(heights)
+    new_image = Image.new("RGB", (total_width, max_height))
+    x_offset = 0
+    for image in images:
+        new_image.paste(image, (x_offset, 0))
+        x_offset += image.size[0]
+    new_image.save(name)
+
 def main() -> None:
-    #pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
-    #                         "transverse mercator",
-    #                         COLORS_D_PRES, COLORS_R_PRES,
-    #                         "montana-presidential.svg",
-    #                         "130 130 440 240")
+    pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
+                             "transverse mercator",
+                             COLORS_D_PRES, COLORS_R_PRES,
+                             "montana-presidential.svg",
+                             "130 130 440 240", 700, 500)
+    print("Map complete")
     #sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
     #                        "transverse mercator",
     #                        COLORS_I_DOWN, COLORS_R_DOWN,
@@ -812,7 +836,10 @@ def main() -> None:
                 [56.9, 40.5], [56.1, 55.3], 73.1,
                 [COLORS_R_PRES, COLORS_D_PRES],
                 ["R", "D"], [COLORS_R_PRES[1]]*3, ["2020", "2016", "2012"],
-                "test-new.svg")
+                "test-new.png")
+    print("Legend complete")
+    combine_images("montana-presidential.png", "test-new.png",
+                   "test-full-0.png")
 
 
 if __name__ == "__main__":
