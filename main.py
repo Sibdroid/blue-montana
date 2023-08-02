@@ -833,7 +833,7 @@ def main() -> None:
                              "transverse mercator",
                              COLORS_D_PRES, COLORS_R_PRES,
                              "montana-presidential.svg",
-                             "130 130 440 240", 700, 500)
+                             "170 170 510 160", 850, 500)
     svg_to_png("montana-presidential.svg", "montana-presidential.png")
     print("Map complete")
     #sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
