@@ -5,8 +5,9 @@ import numpy as np
 import json
 import sys
 import os
+from wand.image import Image
 from decimal import Decimal
-from PIL import Image
+from PIL import Image as Pillow_Image
 from math import pi
 
 
@@ -806,14 +807,21 @@ def draw_legend(candidates: list[str],
     figure.write_image(name, width=300, height=500)
 
 
+def svg_to_png(path: str,
+               new_path: str) -> None:
+    with Image(filename=path) as img:
+        img.format = "png"
+        img.save(filename=new_path)
+
+
 def combine_images(image1_path: str,
                    image2_path: str,
                    name: str) -> None:
-    images = [Image.open(i) for i in [image1_path, image2_path]]
+    images = [Pillow_Image.open(i) for i in [image1_path, image2_path]]
     widths, heights = zip(*(i.size for i in images))
     total_width = sum(widths)
     max_height = max(heights)
-    new_image = Image.new("RGB", (total_width, max_height))
+    new_image = Pillow_Image.new("RGB", (total_width, max_height))
     x_offset = 0
     for image in images:
         new_image.paste(image, (x_offset, 0))
@@ -826,6 +834,7 @@ def main() -> None:
                              COLORS_D_PRES, COLORS_R_PRES,
                              "montana-presidential.svg",
                              "130 130 440 240", 700, 500)
+    svg_to_png("montana-presidential.svg", "montana-presidential.png")
     print("Map complete")
     #sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
     #                        "transverse mercator",
