@@ -3,3 +3,6 @@ pandas==2.0.1
 plotly==5.14.1
 psutil==5.9.5
 requests==2.29.0
+numpy~=1.25.1
+Wand~=0.6.11
+Pillow~=10.0.0
