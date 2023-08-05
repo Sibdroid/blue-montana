@@ -128,6 +128,7 @@ class ChoroplethMap:
                  projection: str,
                  colors_up: list[str],
                  colors_down: list[str],
+                 thresh_margins: list[float],
                  name: str,
                  boundaries: str,
                  width: float,
@@ -146,6 +147,8 @@ class ChoroplethMap:
             'transverse mercator' advised.
             colors_up (list[str]): the colors used for positive values.
             colors_down (list[str]): the colors used for negative values.
+            thresh_margins (list[float]): the thresholds used to link
+            values to colors.
             name (str): the name of the image. '<name>.svg' strongly advised.
             boundaries (str): the boundaries of the image. Should consist of
             four integers divided by spaces: for example, '130 130 440 240'.
@@ -159,6 +162,7 @@ class ChoroplethMap:
         self.projection = projection
         self.colors_up = colors_up
         self.colors_down = colors_down
+        self.thresh_margins = thresh_margins
         self.name = name
         self.boundaries = boundaries
         self.width = width
@@ -190,8 +194,8 @@ class ChoroplethMap:
             colors = self.colors_up
         else:
             colors = self.colors_down
-        for i, (left, right) in enumerate(zip(THRESH_MARGIN,
-                                              THRESH_MARGIN[1:])):
+        for i, (left, right) in enumerate(zip(self.thresh_margins,
+                                              self.thresh_margins[1:])):
             if left < abs(value) <= right:
                 return colors[i]
 
@@ -830,17 +834,12 @@ def combine_images(image1_path: str,
 
 def main() -> None:
     pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
-                             "mercator",
-                             COLORS_D_PRES, COLORS_R_PRES,
+                             "mercator", COLORS_D_PRES, COLORS_R_PRES,
+                             THRESH_MARGIN,
                              "montana-presidential.svg",
                              "298 250 293 15", 890, 500)
     svg_to_png("montana-presidential.svg", "montana-presidential.png")
     print("Map complete")
-    #sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
-    #                        "transverse mercator",
-    #                        COLORS_I_DOWN, COLORS_R_DOWN,
-    #                        "montana-senate.svg",
-    #                        "130 130 440 240")
     draw_legend(["Whitmer (D)", "Vance (R)"],
                 [51.8, 46.7], [49.5, 52.1], 75.6,
                 [COLORS_D_PRES, COLORS_R_PRES],
@@ -850,6 +849,13 @@ def main() -> None:
     print("Legend complete")
     combine_images("montana-presidential.png", "test-new.png",
                    "test-full-rectangular-0.png")
+    county_map = ChoroplethMap("data-montana-pres-counties.xlsx",
+                               "counties.geojson", "mercator",
+                               [COLORS_D_PRES[1], COLORS_D_PRES[3]],
+                               [COLORS_R_PRES[1], COLORS_R_PRES[3]],
+                               [0, 5, 10], "test-counties.svg",
+                               "298 250 293 15", 890, 500)
+
 
 
 if __name__ == "__main__":
