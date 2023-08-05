@@ -830,10 +830,10 @@ def combine_images(image1_path: str,
 
 def main() -> None:
     pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
-                             "transverse mercator",
+                             "mercator",
                              COLORS_D_PRES, COLORS_R_PRES,
                              "montana-presidential.svg",
-                             "170 170 510 160", 850, 500)
+                             "298 250 293 15", 890, 500)
     svg_to_png("montana-presidential.svg", "montana-presidential.png")
     print("Map complete")
     #sen_map = ChoroplethMap("data-montana-sen.xlsx", "counties.geojson",
@@ -849,7 +849,7 @@ def main() -> None:
                 "test-new.png")
     print("Legend complete")
     combine_images("montana-presidential.png", "test-new.png",
-                   "test-full-0.png")
+                   "test-full-rectangular-0.png")
 
 
 if __name__ == "__main__":
