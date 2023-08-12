@@ -68,7 +68,7 @@ def read_data(path: str,
         A ValueError in case the file is neither an .xlsx nor an .svg.
     """
     name, extension = os.path.splitext(path)
-    if extension == ".xlsx":
+    if extension == ".xlsx" or extension == ".xls":
         df = pd.read_excel(path, header=0,
                            index_col=0, dtype=data_dtype)
     elif extension == ".csv":
@@ -82,6 +82,12 @@ def read_data(path: str,
 
 def svg_to_png(path: str,
                new_path: str) -> None:
+    """Converts an image from svg to png.
+
+    Args:
+          path (str): the path to the image.
+          new_path (str): the new path.
+    """
     with Image(filename=path) as img:
         img.format = "png"
         img.save(filename=new_path)
@@ -90,6 +96,13 @@ def svg_to_png(path: str,
 def combine_images(image1_path: str,
                    image2_path: str,
                    name: str) -> None:
+    """Combines two images horizontally.
+
+    Args:
+        image1_path (str): the path to the first image.
+        image2_path (str): the path to the second image.
+        name (str): the name of the result.
+    """
     images = [Pillow_Image.open(i) for i in [image1_path, image2_path]]
     widths, heights = zip(*(i.size for i in images))
     total_width = sum(widths)
