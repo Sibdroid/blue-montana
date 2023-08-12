@@ -4,16 +4,10 @@ import json
 from decimal import Decimal
 from drawing import *
 from tools import *
-COLORS_D_PRES = ["#B9D7FF", "#86B6F2", "#4389E3",
-                 "#1666CB", "#0645B4", "#002B84"]
-COLORS_R_PRES = ["#F2B3BE", "#E27F90", "#CC2F4A",
-                 "#D40000", "#AA0000", "#800000"]
-COLORS_D_DOWN = ["#A5B0FF", "#7996E2", "#6674DE",
-                 "#584CDE", "#3933E5", "#0D0596"]
-COLORS_I_DOWN = ["#D9D9D9", "#BDBDBD", "#969696",
-                 "#737373", "#555555", "#555555"]
-COLORS_R_DOWN = ["#FFB2B2", "#E27F7F", "#D75D5D",
-                 "#D72F30", "#C21B18", "#A80000"]
+COLORS_D_PRES = ["#AFE9AF", "#73D873", "#42CA42",
+                 "#30A630", "#217821", "#165016"]
+COLORS_R_PRES = ["#FEE391", "#FED463", "#FE9929",
+                 "#EC7014", "#CC4C02", "#8C2D04"]
 COLOR_OTHER = "#696969"
 THRESH_MARGIN = [40, 50, 60, 70, 80, 90, 100]
 WHITE = "#FFFFFF"
@@ -202,7 +196,7 @@ def draw_legend(candidates: list[str],
                              y_margin=5,
                              colors=[palettes[1][1], palettes[0][1]],
                              candidate_text=candidates,
-                             candidate_text_positions=[[77, 469], [66, 414]],
+                             candidate_text_positions=[[77, 469], [83, 414]],
                              candidate_text_size=20,
                              result_text=[f"{i}%" for i in results],
                              result_text_positions=[[250, 414], [250, 469]],
@@ -224,22 +218,22 @@ def draw_legend(candidates: list[str],
     figure.write_image(name, width=300, height=500)
 
 def main() -> None:
-    pres_map = ChoroplethMap("data-montana-pres.xlsx", "counties.geojson",
+    pres_map = ChoroplethMap("north-virginia-2024.xlsx", "counties.geojson",
                              "mercator", COLORS_D_PRES, COLORS_R_PRES,
                              THRESH_MARGIN,
-                             "montana-presidential.svg",
-                             "298 250 293 15", 890, 500)
-    svg_to_png("montana-presidential.svg", "montana-presidential.png")
+                             "map.svg",
+                             "350 245 300 30", 1000, 500)
+    svg_to_png("map.svg", "map.png")
     print("Map complete")
-    draw_legend(["Whitmer (D)", "Vance (R)"],
-                [51.8, 46.7], [49.5, 52.1], 75.6,
+    draw_legend(["D. Trone (P)", "C. Miller (U*)"],
+                [53.8, 44.5], [54.2, 57.6], 79.1,
                 [COLORS_D_PRES, COLORS_R_PRES],
-                ["D", "R"], [COLORS_R_PRES[1], COLORS_R_PRES[1],
-                COLORS_D_PRES[1]], ["2036", "2032", "2028"],
-                "test-new.png")
+                ["P", "U"], [COLORS_R_PRES[1], COLORS_R_PRES[1],
+                COLORS_D_PRES[1]], ["2024", "2018", "2012"],
+                "legend.png")
     print("Legend complete")
-    combine_images("montana-presidential.png", "test-new.png",
-                   "test-full-rectangular-0.png")
+    combine_images("map.png", "legend.png",
+                   "north-virginia-test-0.png")
 
 
 if __name__ == "__main__":
