@@ -123,6 +123,16 @@ class ChoroplethMap:
             z=self.data["result"],
             colorscale=self.colorscale,
             showscale=False))
+        """Temporary stuff, tread carefully"""
+        data = pd.read_excel("cities-test.xlsx", header=0,
+                             index_col=0, dtype={"lat": float, "lon": float})
+        fig.add_trace(go.Scattergeo(
+            lon=data["lon"],
+            lat=data["lat"],
+            marker=dict(color="black",
+                        size=4)
+        ))
+        """Temporary stuff ends"""
         fig.update_geos(fitbounds="locations",
                         visible=False,
                         projection_type=self.projection)
@@ -131,6 +141,7 @@ class ChoroplethMap:
         fig.layout.paper_bgcolor = WHITE
         fig.layout.plot_bgcolor = WHITE
         return fig
+
 
     def draw_standard_map(self) -> None:
         """Draws a standard map and updates its boundaries."""
