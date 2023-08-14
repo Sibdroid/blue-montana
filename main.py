@@ -117,27 +117,36 @@ class ChoroplethMap:
 
     def draw_map(self) -> go.Figure():
         """Draws a choropleth map of the data based on the GEOJSON."""
-        fig = go.Figure(data=go.Choropleth(
+        fig = go.Figure()
+        fig.add_trace(go.Choropleth(
             geojson=self.geojson,
             locations=self.data["id"],
             z=self.data["result"],
             colorscale=self.colorscale,
-            showscale=False))
+            showscale=False,
+            name="map"))
         """Temporary stuff, tread carefully"""
         data = pd.read_excel("cities-test.xlsx", header=0,
                              index_col=0, dtype={"lat": float, "lon": float})
         fig.add_trace(go.Scattergeo(
             lon=data["lon"],
             lat=data["lat"],
-            marker=dict(color="black",
-                        size=4)
+            marker=dict(color="#EEEEEE",
+                        size=4,
+                        opacity=1,
+                        line=dict(
+                            width=0.5,
+                            color="black")
+                        ),
+            name="cities"
         ))
         """Temporary stuff ends"""
         fig.update_geos(fitbounds="locations",
                         visible=False,
                         projection_type=self.projection)
         fig.update_traces(marker_line_color=WHITE,
-                          marker_line_width=0.5)
+                          marker_line_width=0.5,
+                          selector = {"name": "map"})
         fig.layout.paper_bgcolor = WHITE
         fig.layout.plot_bgcolor = WHITE
         return fig
