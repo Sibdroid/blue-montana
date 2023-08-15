@@ -131,7 +131,7 @@ class ChoroplethMap:
         fig.add_trace(go.Scattergeo(
             lon=data["lon"],
             lat=data["lat"],
-            marker=dict(color="#EEEEEE",
+            marker=dict(color="rgba(0, 0, 0, 0)",
                         size=4,
                         opacity=1,
                         line=dict(
