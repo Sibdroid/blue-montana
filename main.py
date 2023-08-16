@@ -140,7 +140,8 @@ class ChoroplethMap:
                             color="black")
                         ),
             text=data["name"],
-            textfont=dict(size=5),
+            textfont=dict(size=5,
+                          family="Roboto"),
             textposition="bottom center",
             mode="markers+text",
             name="cities"
@@ -150,7 +151,7 @@ class ChoroplethMap:
                         visible=False,
                         projection_type=self.projection)
         fig.update_traces(marker_line_color=WHITE,
-                          marker_line_width=0.5,
+                          marker_line_width=0.25,
                           selector = {"name": "map"})
         fig.layout.paper_bgcolor = WHITE
         fig.layout.plot_bgcolor = WHITE
@@ -200,7 +201,7 @@ def draw_legend(candidates: list[str],
                            turnout=turnout,
                            circle_point=[80, 309],
                            radii=[66, 63, 60, 30],
-                           turnout_text_size=15,
+                           turnout_text_size=15.5,
                            figure=figure)
     legend = Legend(palettes=palettes,
                     total_x_borders=[190, 190, 295, 295],
@@ -213,15 +214,15 @@ def draw_legend(candidates: list[str],
                     horizontal_text_positions=[[217.5, 164], [265, 164]],
                     horizontal_text_size=13,
                     vertical_text=[f">{i}%" for i in range(40, 100, 10)][::-1],
-                    vertical_text_position=[169, 192.5],
-                    vertical_text_size=13,
+                    vertical_text_position=[171, 192],
+                    vertical_text_size=13.5,
                     figure=figure)
     blocks = CandidateBlocks(x_borders=[10, 10, 290, 290],
                              y_borders=[389, 439, 439, 389],
                              y_margin=5,
                              colors=[palettes[1][1], palettes[0][1]],
                              candidate_text=candidates,
-                             candidate_text_positions=[[77, 469], [83, 414]],
+                             candidate_text_positions=[[74, 469], [78, 414]],
                              candidate_text_size=20,
                              result_text=[f"{i}%" for i in results],
                              result_text_positions=[[250, 414], [250, 469]],
@@ -234,11 +235,10 @@ def draw_legend(candidates: list[str],
                       colors=bar_colors,
                       neutral_color="#EEEEEE",
                       year_text=bar_years,
-                      year_text_positions=[[265, 49], [265, 89],
-                                               [265, 129]],
-                      year_text_size=13,
-                      result_text_positions=[[35, 49], [35, 89], [35, 129]],
-                      result_text_size=13,
+                      year_text_positions=[[265, 46], [265, 86], [265, 126]],
+                      year_text_size=14,
+                      result_text_positions=[[35, 46], [35, 86], [35, 126]],
+                      result_text_size=14,
                       figure=figure)
     figure.write_image(name, width=300, height=500)
 

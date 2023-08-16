@@ -27,7 +27,8 @@ def add_text(figure: go.Figure,
              point: list[float, float],
              text: str,
              size: float,
-             color: str = "black") -> None:
+             color: str = "black",
+             family: str = "Roboto") -> None:
     """Adds text to the figure.
 
     Args:
@@ -36,10 +37,11 @@ def add_text(figure: go.Figure,
         text (str).
         size (float).
         color (str). Defaults to black.
+        family (str). Defaults to 'Roboto'.
     """
     figure.add_annotation(x=point[0], y=point[1], text=text,
                           showarrow=False, ax=0, ay=0,
-                          font=dict(size=size, color=color))
+                          font=dict(size=size, color=color, family=family))
 
 
 def add_rectangle(figure: go.Figure,
