@@ -127,7 +127,8 @@ class ChoroplethMap:
             name="map"))
         """Temporary stuff, tread carefully"""
         data = pd.read_excel("cities-test.xlsx", header=0,
-                             index_col=0, dtype={"lat": float, "lon": float})
+                             dtype={"lat": float, "lon": float})
+        print(data.to_string())
         fig.add_trace(go.Scattergeo(
             lon=data["lon"],
             lat=data["lat"],
@@ -138,6 +139,10 @@ class ChoroplethMap:
                             width=0.5,
                             color="black")
                         ),
+            text=data["name"],
+            textfont=dict(size=5),
+            textposition="bottom center",
+            mode="markers+text",
             name="cities"
         ))
         """Temporary stuff ends"""
