@@ -222,7 +222,7 @@ def draw_legend(candidates: list[str],
                              y_margin=5,
                              colors=[palettes[1][1], palettes[0][1]],
                              candidate_text=candidates,
-                             candidate_text_positions=[[74, 469], [78, 414]],
+                             candidate_text_positions=[[108, 469], [97, 414]],
                              candidate_text_size=20,
                              result_text=[f"{i}%" for i in results],
                              result_text_positions=[[250, 414], [250, 469]],
@@ -250,11 +250,11 @@ def main() -> None:
                              "350 245 300 30", 1000, 500)
     svg_to_png("map.svg", "map.png")
     print("Map complete")
-    draw_legend(["D. Trone (P)", "C. Miller (U*)"],
-                [53.8, 44.5], [54.2, 57.6], 79.1,
+    draw_legend(["Sanders/Manchin (P)", "Christie/Ayotte (U)"],
+                [59.5, 38.3], [54.2, 49.7], 77.4,
                 [COLORS_D_PRES, COLORS_R_PRES],
-                ["P", "U"], [COLORS_R_PRES[1], COLORS_R_PRES[1],
-                COLORS_D_PRES[1]], ["2024", "2018", "2012"],
+                ["P", "U"], [COLORS_R_PRES[1], COLORS_D_PRES[1],
+                COLORS_D_PRES[1]], ["2016", "2012", "2008"],
                 "legend.png")
     print("Legend complete")
     combine_images("map.png", "legend.png",
