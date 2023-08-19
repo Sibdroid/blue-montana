@@ -128,7 +128,6 @@ class ChoroplethMap:
         """Temporary stuff, tread carefully"""
         data = pd.read_excel("cities-test.xlsx", header=0,
                              dtype={"lat": float, "lon": float})
-        print(data.to_string())
         fig.add_trace(go.Scattergeo(
             lon=data["lon"],
             lat=data["lat"],
