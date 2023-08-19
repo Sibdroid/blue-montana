@@ -16,6 +16,7 @@ class ChoroplethMap:
 
     def __init__(self,
                  data: str,
+                 cities: str,
                  geojson: str,
                  projection: str,
                  colors_up: list[str],
@@ -30,10 +31,15 @@ class ChoroplethMap:
 
         Args:
             data (str): the path to the data.
-            Data consists of the following columns:
+            Consists of the following columns:
                 county (str): optional.
                 result (float, from -100 to 100): required.
                 id (str, five digits): required.
+            cities (str): the path to the cities and their coordinates.
+            Consists of the following columns:
+                name (str): required.
+                lat (float, from -90 to 90): the latitude, required.
+                lon (float, from -180 to 180): the longitude, required.
             geojson (str): the path to the file with GEOJSON data.
             projection (str): the projection of the map.
             'transverse mercator' advised.
@@ -51,6 +57,7 @@ class ChoroplethMap:
         self.data = read_data(data, {"id": str})
         with open(geojson) as file:
             self.geojson = json.load(file)
+        self.cities = read_data(cities)
         self.projection = projection
         self.colors_up = colors_up
         self.colors_down = colors_down
@@ -126,11 +133,9 @@ class ChoroplethMap:
             showscale=False,
             name="map"))
         """Temporary stuff, tread carefully"""
-        data = pd.read_excel("cities-test.xlsx", header=0,
-                             dtype={"lat": float, "lon": float})
         fig.add_trace(go.Scattergeo(
-            lon=data["lon"],
-            lat=data["lat"],
+            lon=self.cities["lon"],
+            lat=self.cities["lat"],
             marker=dict(color="rgba(0, 0, 0, 0)",
                         size=4,
                         opacity=1,
@@ -138,7 +143,7 @@ class ChoroplethMap:
                             width=0.5,
                             color="black")
                         ),
-            text=data["name"],
+            text=self.cities["name"],
             textfont=dict(size=5,
                           family="Roboto"),
             textposition="bottom center",
@@ -242,9 +247,9 @@ def draw_legend(candidates: list[str],
     figure.write_image(name, width=300, height=500)
 
 def main() -> None:
-    pres_map = ChoroplethMap("north-virginia-2024.xlsx", "counties.geojson",
-                             "mercator", COLORS_D_PRES, COLORS_R_PRES,
-                             THRESH_MARGIN,
+    pres_map = ChoroplethMap("north-virginia-2024.xlsx", "cities.xlsx",
+                             "counties.geojson", "mercator",
+                             COLORS_D_PRES, COLORS_R_PRES, THRESH_MARGIN,
                              "map.svg",
                              "350 245 300 30", 1000, 500)
     svg_to_png("map.svg", "map.png")
@@ -257,7 +262,7 @@ def main() -> None:
                 "legend.png")
     print("Legend complete")
     combine_images("map.png", "legend.png",
-                   "north-virginia-test-0.png")
+                   "north-virginia-2024.png")
 
 
 if __name__ == "__main__":

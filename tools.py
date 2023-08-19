@@ -54,12 +54,13 @@ def edit_viewbox(path: str,
 
 
 def read_data(path: str,
-              data_dtype: dict[str, type]) -> pd.DataFrame:
+              data_dtype: dict[str, type]=None) -> pd.DataFrame:
     """Reads the data from an .xlsx or a .csv file.
 
     Args:
         path (str): the path to the file.
         data_dtype (dict[str, type]): the dtype for the data.
+        Defaults to None.
 
     Returns:
         A pd.DataFrame.
