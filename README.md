@@ -1,7 +1,7 @@
 # blue-montana
 
-The (hypothetical) results of 2036 US election in Montana. Created as a study 
-<br>in making choropleth map using self-made predictions on US politics.</br>
+The results of a 2016 presidential election in the United States in a different world. 
+<br>Created as a study in making choropleth map using a what-if approach on American politics.</br>
 Not a political campaign or an endorsement of any kind.
 
 ### Prerequisites:
@@ -22,10 +22,10 @@ Not a political campaign or an endorsement of any kind.
 ### Roadmap
 
 - [x] Map data for presidential election - completed on 17-07-2023.
-- [x] Map data for Senate election - completed on 17-07-2023.
-- [ ] Map data for House election.
-  - [ ] Create congressional district map.
-- [ ] Map data for population change. 
-- [ ] Add supporting legend and prettify. 
+- [x] Add supporting legend and prettify - completed on 20-08-2023.
+- [ ] Make legend generation fully automatic.
+- [ ] Change palettes to smaller ones that go over candidate blocks.
+- [ ] Add historical data for highs and lows. 
+- [ ] Repeat the same map for Big Wisconsin. 
 
-<img src="https://github.com/Sibdroid/blue-montana/assets/77882767/8ebb2c78-90ab-4c31-8f8a-11466afa8dd2" width="600" />
+<img src="https://github.com/Sibdroid/blue-montana/assets/77882767/c78dcf79-5cbc-4a25-907a-027b9b619be4" width="600" />
