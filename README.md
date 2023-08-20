@@ -28,4 +28,5 @@ Not a political campaign or an endorsement of any kind.
 - [ ] Add historical data for highs and lows. 
 - [ ] Repeat the same map for Big Wisconsin. 
 
-<img src="https://github.com/Sibdroid/blue-montana/assets/77882767/c78dcf79-5cbc-4a25-907a-027b9b619be4" width="600" />
+<img src="https://github.com/Sibdroid/blue-montana/assets/77882767/c9736409-5655-42ba-b11e-2d8bd8e0eede" width="600" />
+
